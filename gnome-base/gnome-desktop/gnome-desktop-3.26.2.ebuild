@@ -21,6 +21,7 @@ COMMON_DEPEND="
 	x11-libs/cairo:=[X]
 	x11-libs/libX11
 	x11-misc/xkeyboard-config
+	sys-apps/bubblewrap
 	>=gnome-base/gsettings-desktop-schemas-3.5.91
 	introspection? ( >=dev-libs/gobject-introspection-0.9.7:= )
 	udev? (
