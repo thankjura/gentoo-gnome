@@ -19,21 +19,9 @@ HOMEPAGE="https://wiki.gnome.org/Apps/Builder"
 LICENSE="GPL-3+ GPL-2+ LGPL-3+ LGPL-2+ MIT CC-BY-SA-3.0 CC0-1.0"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-IUSE="clang +git sysprof vala webkit"
+IUSE="clang +git sysprof vala webkit +cmake deviced gdb go +python +meson rust valgrind spell"
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
-# When bumping, pay attention to all the included plugins/*/configure.ac files and the requirements within.
-# Most have no extra requirements and default to enabled; we need to handle the ones with extra requirements, which tend to default to auto(magic).
-# Look at the last (fourth) argument given to AC_ARG_ENABLE to decide. We don't support any disabling of those that are default-enabled and have no extra deps beyond C/python/introspection.
-# FIXME: >=dev-util/devhelp-3.20.0 dependency is automagic for devhelp integration plugin
-# FIXME: vte could be optional via $(use_enable vte terminal-plugin) - but most/all people want this and have vte?
-# FIXME: flatpak-plugin needs flatpak.pc >=0.6.9, libgit2[threads] >=libgit2-glib-0.24.0[ssh] libsoup-2.4.pc
-# FIXME: --with-sanitizer configure option
-# FIXME: Enable rdtscp based high performance counter usage on suitable architectures for EGG_COUNTER?
-# Editorconfig needs pcre.h, with vte migrating away, might want it optional?
-# Python is always enabled - the core python plugin support checks are automagic and not worth crippling it by not supporting python plugins
-# Relatedly introspection is always required to not have broken python using plugins or have to enable/disable them based on it. This is a full IDE, not a place to be really minimal.
-# An introspection USE flag of a dep is required if any introspection based language plugin wants to use it. Last full check at 3.22.4
 RDEPEND="
 	>=x11-libs/gtk+-3.22.1:3[introspection]
 	>=dev-libs/glib-2.50.0:2[dbus]
@@ -44,8 +32,10 @@ RDEPEND="
 	>=x11-libs/pango-1.38.0
 	>=dev-libs/libpeas-1.21[python,${PYTHON_USEDEP}]
 	>=dev-libs/json-glib-1.2.0
-	>=app-text/gspell-1.2.0
-	>=app-text/enchant-1.6.0
+	spell? (
+		>=app-text/gspell-1.2.0
+		>=app-text/enchant-2
+	)
 	webkit? ( >=net-libs/webkit-gtk-2.12.0:4=[introspection] )
 	clang? ( sys-devel/clang:= )
 	git? (
@@ -60,6 +50,13 @@ RDEPEND="
 	>=dev-libs/template-glib-3.25
 	>=dev-libs/jsonrpc-glib-3.25
 	dev-util/devhelp
+	cmake? ( dev-util/cmake )
+	gdb? ( sys-devel/gdb )
+	go? ( dev-lang/go )
+	python? ( dev-python/jedi )
+	meson? ( dev-util/meson )
+	rust? ( dev-util/cargo )
+	valgrind? ( dev-util/valgrind )
 "
 # desktop-file-utils for desktop-file-validate check in configure for 3.22.4
 # mm-common due to not fully clean --disable-idemm behaviour, recheck on bump
@@ -107,19 +104,59 @@ src_prepare() {
 src_configure() {
 	local emesonargs=(
 		-D with_editorconfig=true
-		-D with_introspection=true
 		-D with_vala_pack=$(usex vala true false)
 		-D with_webkit=$(usex webkit true false)
 		-D with_html_preview=$(usex webkit true false)
 		-D with_html_completion=$(usex webkit true false)
 		-D with_clang=$(usex clang true false)
+		-D with_cmake=$(usex cmake true false)
 		-D with_git=$(usex git true false)
 		-D with_sysprof=$(usex sysprof true false)
 		-D with_flatpak=false
 		-D with_terminal=true
 		-D with_gettext=true
-		-D with_gettext=true
-		-D with_gdb=false
+		-D with_gdb=$(usex gdb true false)
+		-D with_color_picker=true
+		-D with_code_index=true
+		-D with_command_bar=true
+		-D with_comment_code=true
+		-D with_create_project=true
+		-D with_ctags=true
+		-D with_documentation_card=true
+		-D with_devhelp=true
+		-D with_deviced=$(usex deviced true false)
+		-D with_eslint=true
+		-D with_file_search=true
+		-D with_find_other_file=true
+		-D with_gcc=true
+		-D with_gjs_symbols=true
+		-D with_gnome_code_assistance=true
+		-D with_go_langserv=$(usex go true false)
+		-D with_history=true
+		-D with_jedi=$(usex python true false)
+		-D with_jhbuild=false
+		-D with_make=true
+		-D with_meson=$(usex meson true false)
+		-D with_meson_templates=$(usex meson true false)
+		-D with_mono=false
+		-D with_notification=true
+		-D with_newcomers=true
+		-D with_npm=false
+		-D with_phpize=false
+		-D with_project_tree=true
+		-D with_python_gi_imports_completion=$(usex python true false)
+		-D with_python_pack=$(usex python true false)
+		-D with_quick_highlight=true
+		-D with_retab=true
+		-D with_rust_langserv=$(usex rust true false)
+		-D with_rustup=$(usex rust true false)
+		-D with_spellcheck=$(usex spell true false)
+		-D with_support=true
+		-D with_symbol_tree=true
+		-D with_sysmon=true
+		-D with_todo=true
+		-D with_valgrind=$(usex valgrind true false)
+		-D with_xml_pack=true
 	)
 	meson_src_configure
 }
