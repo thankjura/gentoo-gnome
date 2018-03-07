@@ -7,8 +7,8 @@ PYTHON_COMPAT=( python3_6 )
 
 inherit gnome2 python-r1 meson
 
-DESCRIPTION="Tool to customize GNOME 3 options"
-HOMEPAGE="https://wiki.gnome.org/action/show/Apps/GnomeTweakTool"
+DESCRIPTION="Graphical interface for advanced GNOME 3 settings"
+HOMEPAGE="https://wiki.gnome.org/action/show/Apps/Tweaks"
 
 LICENSE="GPL-2+"
 SLOT="0"
@@ -42,9 +42,6 @@ DEPEND="${COMMON_DEPEND}
 "
 
 src_prepare() {
-	# Add contents of Gentoo's cursor theme directory to cursor theme list
-	eapply "${FILESDIR}/${PN}-3.25.92-gentoo-cursor-themes.patch"
-
 	gnome2_src_prepare
 	python_copy_sources
 }
