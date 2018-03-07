@@ -71,7 +71,7 @@ RDEPEND="${COMMON_DEPEND}
 	|| ( >=sys-apps/systemd-31 ( app-admin/openrc-settingsd sys-auth/consolekit ) )
 	x11-themes/adwaita-icon-theme
 	>=gnome-extra/gnome-color-manager-3
-	gnome-base/gnome-settings-daemon[input_devices_wacom]
+	gnome-base/gnome-settings-daemon
 	i18n? ( >=gnome-base/libgnomekbd-3 )
 	wayland? ( dev-libs/libinput )
 	!wayland? (
