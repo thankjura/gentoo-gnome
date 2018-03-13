@@ -1,0 +1,12 @@
+diff -ru gnome-builder-3.27.92.old/src/plugins/spellcheck/meson.build gnome-builder-3.27.92/src/plugins/spellcheck/meson.build
+--- gnome-builder-3.27.92.old/src/plugins/spellcheck/meson.build	2018-03-05 08:54:20.000000000 +0300
++++ gnome-builder-3.27.92/src/plugins/spellcheck/meson.build	2018-03-13 03:24:57.098968456 +0300
+@@ -29,7 +29,7 @@
+ 
+ gnome_builder_plugins_deps += [
+   dependency('gspell-1', version: '>= 1.2.0'),
+-  dependency('enchant'),
++  dependency('enchant-2'),
+ ]
+ 
+ gnome_builder_plugins_sources += files(spellcheck_sources)

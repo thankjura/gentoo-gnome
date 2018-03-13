@@ -97,6 +97,7 @@ pkg_setup() {
 }
 
 src_prepare() {
+	eapply ${FILESDIR}/${P}-enchant-2.patch
 	use vala && vala_src_prepare
 	gnome2_src_prepare
 }

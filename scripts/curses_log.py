@@ -48,8 +48,8 @@ class CursesLog:
     def exit():
         curses.echo()
         curses.nocbreak()
-        #curses.endwin()
         curses.reset_shell_mode()
+        curses.endwin()
 
 
 def signal_handler(signal, frame):
