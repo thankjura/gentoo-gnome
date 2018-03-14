@@ -149,9 +149,12 @@ src_configure() {
 	# unicode-support: libunistring, libicu or glib ?
 	# According to NEWS, introspection is required
 	# is not being generated
+	# nautilus extension is dropped since 2 version
+	# miner-evolution disabled as it's incompatible with current eds
 	gnome2_src_configure \
 		--disable-hal \
 		--disable-miner-evolution \
+		--disable-nautilus-extension \
 		--disable-static \
 		--enable-abiword \
 		--enable-artwork \
