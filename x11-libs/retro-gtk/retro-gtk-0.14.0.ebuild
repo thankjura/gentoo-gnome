@@ -4,7 +4,7 @@
 
 EAPI=6
 
-inherit gnome2
+inherit gnome2 meson
 
 DESCRIPTION="Toolkit to write Gtk+ 3 based libretro frontends"
 HOMEPAGE="https://git.gnome.org/browse/retro-gtk/"
@@ -19,8 +19,3 @@ DEPEND="
 	media-sound/pulseaudio
 	virtual/pkgconfig
 "
-
-src_prepare() {
-	./autogen.sh
-	default
-}

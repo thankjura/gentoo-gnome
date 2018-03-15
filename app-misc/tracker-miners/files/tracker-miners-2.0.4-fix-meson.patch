@@ -1,0 +1,12 @@
+diff -ru tracker-miners-2.0.4.old/src/tracker-extract/meson.build tracker-miners-2.0.4/src/tracker-extract/meson.build
+--- tracker-miners-2.0.4.old/src/tracker-extract/meson.build	2018-02-07 02:36:54.000000000 +0300
++++ tracker-miners-2.0.4/src/tracker-extract/meson.build	2018-03-15 03:48:33.435136491 +0300
+@@ -29,7 +29,7 @@
+ endif
+ 
+ if gexiv2.found()
+-  modules += [['extract-raw', 'tracker-extract-raw.c', '10-raw.rule', [gexiv2, tracker_common_dep]]]
++  modules += [['extract-raw', 'tracker-extract-raw.c', '10-raw.rule', [gexiv2, tracker_miners_common_dep]]]
+ endif
+ 
+ if libgif.found()

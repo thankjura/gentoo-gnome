@@ -20,6 +20,7 @@ DEPEND="
 	>=x11-libs/retro-gtk-0.10
 	media-libs/grilo:0.3[vala]
 	virtual/pkgconfig
+	dev-libs/libmanette
 "
 
 src_prepare() {
