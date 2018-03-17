@@ -22,6 +22,8 @@ DEPEND="
 	>=dev-util/intltool-0.40
 	sys-devel/gettext
 	virtual/pkgconfig
+	!x11-themes/gnome-themes-standard
+	!x11-themes/gtk-engines-adwaita
 "
 
 src_prepare() {
@@ -32,8 +34,8 @@ src_prepare() {
 src_configure() {
 	ECONF_SOURCE="${S}" econf \
 		--disable-static \
-		--disable-gtk2-engine \
-		--disable-gtk3-engine \
+		--enable-gtk2-engine \
+		--enable-gtk3-engine \
 		GTK_UPDATE_ICON_CACHE=$(type -P true)
 }
 
