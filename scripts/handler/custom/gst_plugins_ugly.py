@@ -9,7 +9,6 @@ ATOMS = (
     'media-plugins/gst-plugins-a52dec',
     'media-plugins/gst-plugins-twolame',
     'media-plugins/gst-plugins-amr',
-    'media-plugins/gst-plugins-lame',
     'media-plugins/gst-plugins-dvdread',
     'media-plugins/gst-plugins-x264',
     'media-plugins/gst-plugins-mpeg2dec',
