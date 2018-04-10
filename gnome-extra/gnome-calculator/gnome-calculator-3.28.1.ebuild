@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
-inherit gnome2
+inherit gnome2 meson
 
 DESCRIPTION="A calculator application for GNOME"
 HOMEPAGE="https://wiki.gnome.org/Apps/Calculator"
@@ -31,9 +31,3 @@ DEPEND="${COMMON_DEPEND}
 	sys-devel/gettext
 	virtual/pkgconfig
 "
-
-src_configure() {
-	gnome2_src_configure \
-		--disable-static \
-		VALAC=$(type -P true)
-}
