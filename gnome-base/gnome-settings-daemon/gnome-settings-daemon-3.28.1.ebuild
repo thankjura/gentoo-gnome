@@ -118,7 +118,7 @@ src_configure() {
 		-Dnetwork_manager=$(usex networkmanager true false)
 		-Dwayland=$(usex wayland true false)
 		-Dsmartcard=$(usex smartcard true false)
-		-Dudev_dir="$(get_udevdir)"/rules.d
+		-Dudev_dir="$(get_udevdir)"
 	)
 	meson_src_configure
 }
