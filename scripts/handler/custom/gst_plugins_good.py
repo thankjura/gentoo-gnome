@@ -20,6 +20,7 @@ ATOMS = (
     'media-plugins/gst-plugins-taglib',
     'media-plugins/gst-plugins-jack',
     'media-plugins/gst-plugins-flac',
+    'media-plugins/gst-plugins-lame',
 )
 
 
