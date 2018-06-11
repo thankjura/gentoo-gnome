@@ -76,7 +76,6 @@ RDEPEND="${COMMON_DEPEND}
 	!<gnome-extra/gnome-power-manager-3.1.3
 	!<gnome-base/gnome-session-3.23.2
 "
-# xproto-7.0.15 needed for power plugin
 DEPEND="${COMMON_DEPEND}
 	cups? ( sys-apps/sed )
 	test? (
@@ -88,10 +87,7 @@ DEPEND="${COMMON_DEPEND}
 	sys-devel/gettext
 	>=dev-util/intltool-0.40
 	virtual/pkgconfig
-	x11-proto/inputproto
-	x11-proto/xf86miscproto
-	x11-proto/kbproto
-	>=x11-proto/xproto-7.0.15
+	x11-base/xorg-proto
 "
 
 python_check_deps() {

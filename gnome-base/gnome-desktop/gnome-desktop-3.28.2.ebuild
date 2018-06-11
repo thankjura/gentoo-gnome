@@ -38,11 +38,9 @@ DEPEND="${COMMON_DEPEND}
 	>=dev-util/intltool-0.40.6
 	dev-util/itstool
 	sys-devel/gettext
-	x11-proto/xproto
+	x11-base/xorg-proto
 	virtual/pkgconfig
 "
-
-# Includes X11/Xatom.h in libgnome-desktop/gnome-bg.c which comes from xproto
 
 src_configure() {
 	gnome2_src_configure \
