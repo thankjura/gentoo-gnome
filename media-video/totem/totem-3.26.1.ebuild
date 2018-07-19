@@ -86,14 +86,6 @@ pkg_setup() {
 	use python && python-single-r1_pkg_setup
 }
 
-src_prepare() {
-	# Prevent pylint usage by tests, bug #482538
-	sed -i -e 's/ check-pylint//' src/plugins/Makefile.plugins || die
-
-	eapply_user
-	gnome2_src_prepare
-}
-
 src_configure() {
 	addwrite /dev/dri/card0
 	# Disabled: sample-python, sample-vala
