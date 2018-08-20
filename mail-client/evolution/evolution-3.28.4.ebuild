@@ -27,7 +27,7 @@ PINENTRY_DEPEND="|| ( app-crypt/pinentry[gnome-keyring] app-crypt/pinentry[gtk] 
 # gnome-desktop support is optional with --enable-gnome-desktop
 COMMON_DEPEND="
 	>=app-crypt/gcr-3.4:=
-	>=app-text/enchant-1.1.7
+	>=app-text/enchant-2.2.0
 	>=dev-libs/glib-2.46:2[dbus]
 	>=dev-libs/libxml2-2.7.3:2
 	>=gnome-base/gnome-desktop-2.91.3:3=
