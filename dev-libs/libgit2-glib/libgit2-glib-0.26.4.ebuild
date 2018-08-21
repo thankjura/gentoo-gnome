@@ -22,7 +22,7 @@ REQUIRED_USE="python? ( ${PYTHON_REQUIRED_USE} )"
 RDEPEND="
 	>=dev-libs/gobject-introspection-0.10.1:=
 	>=dev-libs/glib-2.44.0:2
-	>=dev-libs/libgit2-0.26.0:0/26[ssh?]
+	>=dev-libs/libgit2-0.26[ssh?]
 	python? (
 		${PYTHON_DEPS}
 		dev-python/pygobject:3[${PYTHON_USEDEP}] )
@@ -38,6 +38,7 @@ meson_use_enable() {
 
 src_prepare() {
 	use vala && vala_src_prepare
+	eapply ${FILESDIR}/${PN}-libgit2-27.patch
 	gnome2_src_prepare
 }
 
