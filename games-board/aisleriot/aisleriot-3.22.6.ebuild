@@ -74,7 +74,7 @@ src_configure() {
 		--with-guile=2.2 \
 		$(usex debug --enable-debug=yes --enable-debug=minimum) \
 		--enable-sound \
-		--with-pysol-card-theme-path="${EPREFIX}${GAMES_DATADIR}"/pysolfc \
+		--with-pysol-card-theme-path="/usr/share/pysolfc" \
 		${myconf[@]}
 }
 
