@@ -2,6 +2,7 @@ from ..version import get_last_local_version
 from ..ebuild import create_ebuild
 
 ATOM = 'dev-util/gdbus-codegen'
+ATOM = 'dev-util/glib-utils'
 
 
 async def run(new_version):
