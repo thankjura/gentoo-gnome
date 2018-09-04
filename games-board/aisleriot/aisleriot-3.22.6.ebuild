@@ -4,7 +4,7 @@
 EAPI=6
 GNOME2_EAUTORECONF="yes"
 
-inherit gnome2
+inherit gnome2 virtualx
 
 DESCRIPTION="A collection of solitaire card games for GNOME"
 HOMEPAGE="https://wiki.gnome.org/action/show/Apps/Aisleriot"
@@ -75,12 +75,24 @@ src_configure() {
 		$(usex debug --enable-debug=yes --enable-debug=minimum) \
 		--enable-sound \
 		--with-pysol-card-theme-path="/usr/share/pysolfc" \
+		--with-default-card-theme=ornamental.svgz \
+		--enable-schemas-install --enable-schemas-compile \
 		${myconf[@]}
 }
 
+#src_test() {
+#	"${EROOT}${GLIB_COMPILE_SCHEMAS}" --allow-any-name "${S}/data" || die
+#	GSETTINGS_SCHEMA_DIR="${S}/src" virtx emake check
+#}
+
 pkg_postinst() {
 	gnome2_pkg_postinst
-
+	gnome2_schemas_update
 	elog "Aisleriot can use additional card themes from games-board/pysolfc"
 	elog "and kde-base/libkdegames."
+}
+
+pkg_postrm() {
+	gnome2_icon_cache_update
+	gnome2_schemas_update
 }

@@ -32,7 +32,6 @@ DEPEND="${RDEPEND}
 "
 
 src_prepare() {
-	vala_src_prepare
 	default
 }
 
