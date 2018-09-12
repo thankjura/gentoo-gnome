@@ -126,9 +126,6 @@ src_prepare() {
 	# Gentoo does not have a fingerprint-auth pam stack
 	eapply "${FILESDIR}/${PN}-3.8.4-fingerprint-auth.patch"
 
-	https://gitlab.gnome.org/GNOME/gdm/commit/e8f11816a30fa281a6a22ea8d635c64679cb81bd
-	eapply "${FILESDIR}/${P}-fix-without-playmouth.patch"
-
 	gnome2_src_prepare
 }
 
