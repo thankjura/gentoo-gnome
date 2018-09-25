@@ -2,12 +2,10 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
-inherit gnome2
+inherit gnome2 meson
 
-DESCRIPTION="A nice way to view information about use of system resources, like memory and disk space."
+DESCRIPTION="A nice way to view information about use of system resources"
 HOMEPAGE="https://wiki.gnome.org/Apps/Usage"
-
-SRC_URI="https://git.gnome.org/browse/gnome-usage/snapshot/${P}.tar.xz"
 
 LICENSE="GPL-3"
 SLOT="0"
@@ -24,22 +22,8 @@ DEPEND="
 	caps? ( sys-libs/libcap )
 "
 
-src_prepare() {
-	rm -rf build
-	default
-}
-
-src_configure() {
-	meson --prefix=/usr build
-}
-
-src_compile() {
-	ninja -v -C build
-}
-
 src_install() {
-	export DESTDIR=${D}
-	ninja -v -C build install
+	meson_src_install
 	if use caps; then
 		setcap "cap_net_raw,cap_net_admin=eip" ${ED}/usr/bin/gnome-usage
 	fi
