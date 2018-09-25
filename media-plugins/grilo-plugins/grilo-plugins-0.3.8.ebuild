@@ -75,7 +75,7 @@ pkg_setup() {
 
 src_configure() {
 	local emesonargs=(
-		-D enable-bookmarks=yes
+		-D enable-bookmarks=no
 		-D enable-chromaprint=$(usex chromaprint yes no)
 		-D enable-dleyna=$(usex upnp-av yes no)
 		-D enable-dmap=$(usex daap yes no)
