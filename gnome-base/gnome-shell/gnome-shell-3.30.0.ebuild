@@ -117,7 +117,19 @@ DEPEND="${COMMON_DEPEND}
 
 PATCHES=(
 	# Change favorites defaults, bug #479918
-	"${FILESDIR}"/${PN}-3.22.0-defaults.patch
+	"${FILESDIR}"/patches/gnome-shell-favourite-apps-firefox.patch
+	"${FILESDIR}"/patches/0001-network-Don-t-assume-the-active-connection-has-been-.patch
+	"${FILESDIR}"/patches/0001-Fix-connection-to-wifi-APs-from-user-menu-RH-1628263.patch
+	"${FILESDIR}"/patches/0001-dnd-Nullify-_dragActor-after-we-ve-destroyed-it-and-.patch
+	"${FILESDIR}"/patches/0002-messageList-stop-syncing-if-closeButton-has-been-des.patch
+	"${FILESDIR}"/patches/0003-automountManager-remove-allowAutorun-expire-timeout-.patch
+	"${FILESDIR}"/patches/0004-calendar-chain-up-to-parent-on-_onDestroy.patch
+	"${FILESDIR}"/patches/234.patch
+	"${FILESDIR}"/patches/0001-windowManager-listen-actively-to-windows-being-destr.patch
+	"${FILESDIR}"/patches/0001-windowMenu-Port-from-Meta.ScreenDirection-to-Meta.Di.patch
+	"${FILESDIR}"/patches/0001-theme-define-proper-hover-and-active-states.patch
+	"${FILESDIR}"/patches/0001-inputMethod-Add-a-null-check-for-text-in-vfunc_set_s.patch
+	"${FILESDIR}"/patches/228.patch
 )
 
 src_configure() {
