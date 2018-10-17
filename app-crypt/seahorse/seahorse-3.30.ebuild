@@ -9,14 +9,14 @@ HOMEPAGE="https://wiki.gnome.org/Apps/Seahorse"
 
 LICENSE="GPL-2+ FDL-1.1+"
 SLOT="0"
-IUSE="debug ldap zeroconf"
+IUSE="debug ldap zeroconf +help"
 KEYWORDS="~alpha amd64 ~arm ~ia64 ~ppc ~ppc64 ~sparc x86 ~x86-fbsd"
 
 COMMON_DEPEND="
 	>=app-crypt/gcr-3.11.91:=
 	>=dev-libs/glib-2.10:2
 	>=x11-libs/gtk+-3.4:3
-	>=app-crypt/libsecret-0.16
+	>=app-crypt/libsecret-0.16[vala]
 	>=net-libs/libsoup-2.33.92:2.4
 	x11-misc/shared-mime-info
 
@@ -51,6 +51,7 @@ src_configure() {
 		-Dhkp-support=true
 		-Dldap-support=$(usex ldap true false)
 		-Dkey-sharing=$(usex zeroconf true false)
+		-Dhelp=$(usex help true false)
 	)
 	meson_src_configure
 }
