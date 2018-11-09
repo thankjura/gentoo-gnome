@@ -9,13 +9,13 @@ HOMEPAGE="https://wiki.gnome.org/Apps/Todo"
 
 LICENSE="GPL-3"
 SLOT="0"
-IUSE="doc"
+IUSE="doc +todoist"
 KEYWORDS="~amd64 ~x86"
 
 RDEPEND="
 	>=dev-libs/glib-2.43.4:2
 	>=x11-libs/gtk+-3.22.0:3
-	>=net-libs/gnome-online-accounts-3.28.0
+	>=net-libs/gnome-online-accounts-3.28.0[todoist?]
 	>=gnome-extra/evolution-data-server-3.28.0:=[gtk]
 	>=dev-libs/libical-0.43
 	>=dev-libs/libpeas-1.22
@@ -37,7 +37,7 @@ src_configure() {
 		-Dtoday-panel-plugin=true \
 		-Dunscheduled-panel-plugin=true \
 		-Dtodo-txt-plugin=true \
-		-Dtodoist-plugin=true \
+		$(meson_use todoist todoist-plugin) \
 		$(meson_use doc enable-gtk-doc) \
 		-Dintrospection=true
 }

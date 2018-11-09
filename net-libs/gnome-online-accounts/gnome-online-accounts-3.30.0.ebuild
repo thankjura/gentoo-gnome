@@ -14,7 +14,7 @@ LICENSE="LGPL-2+"
 SLOT="0/1"
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~sparc ~x86"
 
-IUSE="debug gnome +introspection kerberos vala" # telepathy"
+IUSE="debug gnome +introspection kerberos vala +todoist"
 REQUIRED_USE="vala? ( introspection )"
 
 # pango used in goaeditablelabel
@@ -39,8 +39,7 @@ RDEPEND="
 		app-crypt/gcr:0=
 		app-crypt/mit-krb5 )
 "
-#	telepathy? ( net-libs/telepathy-glib )
-# goa-daemon can launch gnome-control-center
+
 PDEPEND="gnome? ( >=gnome-base/gnome-control-center-3.2[gnome-online-accounts(+)] )"
 
 DEPEND="${RDEPEND}
@@ -81,13 +80,12 @@ src_configure() {
 		--enable-media-server \
 		--enable-owncloud \
 		--enable-pocket \
-		--enable-telepathy \
 		--enable-windows-live \
 		$(usex debug --enable-debug=yes ' ') \
 		$(use_enable kerberos) \
 		$(use_enable introspection) \
-		$(use_enable vala)
-		#$(use_enable telepathy)
+		$(use_enable vala) \
+		$(use_enable todoist)
 	# gudev & cheese from sub-configure is overriden
 	# by top level configure, and disabled so leave it like that
 }
