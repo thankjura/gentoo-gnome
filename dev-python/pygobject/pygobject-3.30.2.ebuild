@@ -4,9 +4,7 @@
 EAPI=6
 PYTHON_COMPAT=( python2_7 python3_{4,5,6,7} pypy )
 
-inherit eutils virtualx python-r1 meson
-
-SRC_URI="https://download.gnome.org/sources/pygobject/3.29/pygobject-${PV}.tar.xz"
+inherit gnome2 eutils virtualx python-r1 meson
 
 DESCRIPTION="GLib's GObject library bindings for Python"
 HOMEPAGE="https://wiki.gnome.org/Projects/PyGObject"
