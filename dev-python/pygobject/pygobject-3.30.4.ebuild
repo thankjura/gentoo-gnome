@@ -43,3 +43,22 @@ RDEPEND="${COMMON_DEPEND}
 	!<dev-python/pygtk-2.13
 	!<dev-python/pygobject-2.28.6-r50:2[introspection]
 "
+src_configure() {
+	configuring() {
+		meson_src_configure \
+			-Dpycairo=$(usex cairo true false) \
+			-Dpython=${EPYTHON}
+	}
+
+	python_foreach_impl run_in_build_dir configuring
+}
+
+src_compile() {
+	python_foreach_impl run_in_build_dir meson_src_compile
+}
+
+src_install() {
+	python_foreach_impl run_in_build_dir meson_src_install
+
+	dodoc -r examples
+}
