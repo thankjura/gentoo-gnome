@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
-inherit gnome2 pax-utils virtualx
+inherit gnome2 pax-utils virtualx flag-o-matic
 
 DESCRIPTION="Javascript bindings for GNOME"
 HOMEPAGE="https://wiki.gnome.org/Projects/Gjs"
@@ -32,12 +32,14 @@ DEPEND="${RDEPEND}
 PATCHES=(
 	# Disable unittest failing without pt_BR locale, upstream bug #????
 	"${FILESDIR}"/1.50.2-disable-unittest.patch
+	"${FILESDIR}"/${PV}-fix-check-error.patch
 )
 
 src_configure() {
 	# FIXME: add systemtap/dtrace support, like in glib:2
 	# FIXME: --enable-systemtap installs files in ${D}/${D} for some reason
 	# XXX: Do NOT enable coverage, completely useless for portage installs
+	append-cxxflags -std=c++14
 	gnome2_src_configure \
 		--disable-systemtap \
 		--disable-dtrace \
