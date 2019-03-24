@@ -115,6 +115,8 @@ DEPEND="${COMMON_DEPEND}
 	virtual/pkgconfig
 "
 
+PATCHES="${FILESDIR}/fix-hight-cpu-usage.patch"
+
 src_configure() {
 	local emesonargs=(
 		-D enable-browser-plugin=$(usex nsplugin true false)
