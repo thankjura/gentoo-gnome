@@ -34,6 +34,7 @@ DEPEND="${RDEPEND}
 src_prepare() {
 	vala_src_prepare
 	xdg_src_prepare
+	VALAC=/usr/bin/valac
 }
 
 pkg_postinst() {

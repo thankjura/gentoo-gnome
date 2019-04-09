@@ -32,7 +32,6 @@ DEPEND="${RDEPEND}
 PATCHES=(
 	# Disable unittest failing without pt_BR locale, upstream bug #????
 	"${FILESDIR}"/1.50.2-disable-unittest.patch
-	"${FILESDIR}"/${PV}-fix-check-error.patch
 )
 
 src_configure() {
