@@ -23,10 +23,12 @@ DEPEND="${RDEPEND}
 "
 
 src_configure() {
-	# Add explicit stdc, bug #628256
-	append-cflags "-std=c99"
-
 	gnome2_src_configure \
 		--disable-static \
 		$(use_enable introspection)
+}
+
+src_install() {
+	addwrite "/usr/bin/libgtop_server2"
+	gnome2_src_install
 }

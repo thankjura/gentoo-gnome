@@ -18,7 +18,6 @@ DEPEND="
 	x11-libs/gtk+:3
 	>=dev-util/meson-0.36
 	>=gnome-base/libgtop-2.34.2
-	>=net-libs/netinfo-ffi-0.3.1
 	caps? ( sys-libs/libcap )
 "
 
