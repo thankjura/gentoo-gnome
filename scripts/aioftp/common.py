@@ -3,6 +3,7 @@ import functools
 import collections
 import locale
 import threading
+import abc
 from contextlib import contextmanager
 
 
@@ -34,6 +35,7 @@ DEFAULT_PORT = 21
 DEFAULT_USER = "anonymous"
 DEFAULT_PASSWORD = "anon@"
 DEFAULT_ACCOUNT = ""
+HALF_OF_YEAR_IN_SECONDS = 15778476
 
 
 def _with_timeout(name):
@@ -94,7 +96,7 @@ class AsyncStreamIterator:
     def __init__(self, read_coro):
         self.read_coro = read_coro
 
-    async def __aiter__(self):
+    def __aiter__(self):
         return self
 
     async def __anext__(self):
@@ -125,13 +127,13 @@ class AsyncListerMixin:
         return self._to_list().__await__()
 
 
-class AbstractAsyncLister(AsyncListerMixin):
+class AbstractAsyncLister(AsyncListerMixin, abc.ABC):
     """
     Abstract context with ability to collect all iterables into
     :py:class:`list` via `await` with optional timeout (via
     :py:func:`aioftp.with_timeout`)
 
-    :param timeout: timeout for __aiter__, __anext__ operations
+    :param timeout: timeout for __anext__ operation
     :type timeout: :py:class:`None`, :py:class:`int` or :py:class:`float`
 
     :param loop: loop to use for timeouts
@@ -141,10 +143,6 @@ class AbstractAsyncLister(AsyncListerMixin):
 
         >>> class Lister(AbstractAsyncLister):
         ...
-        ...     @with_timeout
-        ...     async def __aiter__(self):
-        ...         ...
-
         ...     @with_timeout
         ...     async def __anext__(self):
         ...         ...
@@ -161,16 +159,21 @@ class AbstractAsyncLister(AsyncListerMixin):
         [block, block, block, ...]
     """
     def __init__(self, *, timeout=None, loop=None):
+        super().__init__()
         self.timeout = timeout
         self.loop = loop or asyncio.get_event_loop()
 
-    @with_timeout
-    async def __aiter__(self):
-        raise NotImplementedError
+    def __aiter__(self):
+        return self
 
     @with_timeout
+    @abc.abstractmethod
     async def __anext__(self):
-        raise NotImplementedError
+        """
+        :py:func:`asyncio.coroutine`
+
+        Abstract method
+        """
 
 
 def async_enterable(f):

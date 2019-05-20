@@ -3,7 +3,7 @@
 
 EAPI=6
 GNOME2_LA_PUNT="yes"
-PYTHON_COMPAT=( python2_7 python3_{4,5,6} pypy )
+PYTHON_COMPAT=( python2_7 python3_{4,5,6,7} pypy )
 VALA_USE_DEPEND="vapigen"
 
 inherit cmake-utils db-use flag-o-matic gnome2 python-any-r1 systemd vala virtualx
@@ -86,8 +86,8 @@ src_prepare() {
 	gnome2_src_prepare
 
 	# Make CMakeLists versioned vala enabled
-	sed -e "s;\(find_program(VALAC \) valac);\1 ${VALAC});" \
-		-e "s;\(find_program(VAPIGEN \) vapigen);\1 ${VAPIGEN});" \
+	sed -e "s;\(find_program(VALAC\) valac);\1 ${VALAC});" \
+		-e "s;\(find_program(VAPIGEN\) vapigen);\1 ${VAPIGEN});" \
 		-i "${S}"/CMakeLists.txt || die
 }
 
@@ -96,11 +96,11 @@ src_configure() {
 	# so include the right dir in CPPFLAGS
 	use berkdb && append-cppflags "-I$(db_includedir)"
 
-	local oauth2_enable
+	local google_enable
 	if use oauth || use gnome-online-accounts; then
-		oauth2_enable="ON"
+		google_enable="ON"
 	else
-		oauth2_enable="OFF"
+		google_enable="OFF"
 	fi
 
 	# phonenumber does not exist in tree
@@ -118,7 +118,7 @@ src_configure() {
 		-DENABLE_SMIME=ON
 		-DENABLE_GTK=$(usex gtk)
 		-DENABLE_CANBERRA=$(usex gtk)
-		-DENABLE_OAUTH2=${oauth2_enable}
+		-DENABLE_OAUTH2=$(usex oauth)
 		-DENABLE_EXAMPLES=OFF
 		-DENABLE_GOA=$(usex gnome-online-accounts)
 		-DENABLE_UOA=OFF
@@ -126,7 +126,7 @@ src_configure() {
 		# ENABLE_BACKTRACES requires libdwarf ?
 		-DENABLE_IPV6=$(usex ipv6)
 		-DENABLE_WEATHER=$(usex weather)
-		-DENABLE_GOOGLE=$(usex oauth)
+		-DENABLE_GOOGLE=${google_enable}
 		-DENABLE_LARGEFILE=ON
 		-DENABLE_VALA_BINDINGS=$(usex vala)
 	)

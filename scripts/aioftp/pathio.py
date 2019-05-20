@@ -6,6 +6,8 @@ import io
 import time
 import stat
 import sys
+import pathlib
+import abc
 
 from .common import (with_timeout, AsyncStreamIterator, DEFAULT_BLOCK_SIZE,
                      AbstractAsyncLister)
@@ -17,6 +19,7 @@ __all__ = (
     "PathIO",
     "AsyncPathIO",
     "MemoryPathIO",
+    "PathIONursery",
 )
 
 
@@ -78,13 +81,40 @@ def universal_exception(coro):
         except (asyncio.CancelledError, NotImplementedError,
                 StopAsyncIteration):
             raise
-        except:
+        except Exception:
             raise errors.PathIOError(reason=sys.exc_info())
 
     return wrapper
 
 
-class AbstractPathIO:
+class PathIONursery:
+
+    def __init__(self, factory):
+        self.factory = factory
+        self.state = None
+
+    def __call__(self, *args, **kwargs):
+        instance = self.factory(*args, state=self.state, **kwargs)
+        if self.state is None:
+            self.state = instance.state
+        return instance
+
+
+def defend_file_methods(coro):
+    """
+    Decorator. Raises exception when file methods called with wrapped by
+    :py:class:`aioftp.AsyncPathIOContext` file object.
+    """
+    @functools.wraps(coro)
+    async def wrapper(self, file, *args, **kwargs):
+        if isinstance(file, AsyncPathIOContext):
+            raise ValueError("Native path io file methods can not be used "
+                             "with wrapped file object")
+        return await coro(self, file, *args, **kwargs)
+    return wrapper
+
+
+class AbstractPathIO(abc.ABC):
     """
     Abstract class for path io operations.
 
@@ -93,12 +123,25 @@ class AbstractPathIO:
 
     :param loop: loop to use
     :type loop: :py:class:`asyncio.BaseEventLoop`
+
+    :param connection: server connection that is accessing this PathIO
+    :type connection: :py:class:`aioftp.Connection`
+
+    :param state: shared pathio state per server
     """
-    def __init__(self, timeout=None, loop=None):
+    def __init__(self, timeout=None, loop=None, connection=None, state=None):
         self.timeout = timeout
         self.loop = loop or asyncio.get_event_loop()
+        self.connection = connection
+
+    @property
+    def state(self):
+        """
+        Shared pathio state per server
+        """
 
     @universal_exception
+    @abc.abstractmethod
     async def exists(self, path):
         """
         :py:func:`asyncio.coroutine`
@@ -110,9 +153,9 @@ class AbstractPathIO:
 
         :rtype: :py:class:`bool`
         """
-        raise NotImplementedError
 
     @universal_exception
+    @abc.abstractmethod
     async def is_dir(self, path):
         """
         :py:func:`asyncio.coroutine`
@@ -124,9 +167,9 @@ class AbstractPathIO:
 
         :rtype: :py:class:`bool`
         """
-        raise NotImplementedError
 
     @universal_exception
+    @abc.abstractmethod
     async def is_file(self, path):
         """
         :py:func:`asyncio.coroutine`
@@ -138,10 +181,10 @@ class AbstractPathIO:
 
         :rtype: :py:class:`bool`
         """
-        raise NotImplementedError
 
     @universal_exception
-    async def mkdir(self, path, *, parents=False):
+    @abc.abstractmethod
+    async def mkdir(self, path, *, parents=False, exist_ok=False):
         """
         :py:func:`asyncio.coroutine`
 
@@ -152,10 +195,13 @@ class AbstractPathIO:
 
         :param parents: create parents is does not exists
         :type parents: :py:class:`bool`
+
+        :param exist_ok: do not raise exception if directory already exists
+        :type exist_ok: :py:class:`bool`
         """
-        raise NotImplementedError
 
     @universal_exception
+    @abc.abstractmethod
     async def rmdir(self, path):
         """
         :py:func:`asyncio.coroutine`
@@ -165,9 +211,9 @@ class AbstractPathIO:
         :param path: path to remove
         :type path: :py:class:`pathlib.Path`
         """
-        raise NotImplementedError
 
     @universal_exception
+    @abc.abstractmethod
     async def unlink(self, path):
         """
         :py:func:`asyncio.coroutine`
@@ -177,12 +223,12 @@ class AbstractPathIO:
         :param path: path to remove
         :type path: :py:class:`pathlib.Path`
         """
-        raise NotImplementedError
 
+    @abc.abstractmethod
     def list(self, path):
         """
         Create instance of subclass of :py:class:`aioftp.AbstractAsyncLister`.
-        You should subclass and implement `__aiter__` and `__anext__` methods
+        You should subclass and implement `__anext__` method
         for :py:class:`aioftp.AbstractAsyncLister` and return new instance.
 
         :param path: path to list
@@ -204,9 +250,9 @@ class AbstractPathIO:
             [path, path, path, ...]
 
         """
-        raise NotImplementedError
 
     @universal_exception
+    @abc.abstractmethod
     async def stat(self, path):
         """
         :py:func:`asyncio.coroutine`
@@ -220,9 +266,9 @@ class AbstractPathIO:
           st_size, st_mtime, st_ctime, st_nlink, st_mode
         :rtype: same as :py:class:`os.stat_result`
         """
-        raise NotImplementedError
 
     @universal_exception
+    @abc.abstractmethod
     async def _open(self, path, mode):
         """
         :py:func:`asyncio.coroutine`
@@ -241,7 +287,6 @@ class AbstractPathIO:
 
         :return: file-object
         """
-        raise NotImplementedError
 
     def open(self, *args, **kwargs):
         """
@@ -253,6 +298,8 @@ class AbstractPathIO:
         return AsyncPathIOContext(self, args, kwargs)
 
     @universal_exception
+    @defend_file_methods
+    @abc.abstractmethod
     async def seek(self, file, offset, whence=io.SEEK_SET):
         """
         :py:func:`asyncio.coroutine`
@@ -268,9 +315,10 @@ class AbstractPathIO:
         :param whence: base position for offset
         :type whence: :py:class:`int`
         """
-        raise NotImplementedError
 
     @universal_exception
+    @defend_file_methods
+    @abc.abstractmethod
     async def write(self, file, data):
         """
         :py:func:`asyncio.coroutine`
@@ -282,9 +330,10 @@ class AbstractPathIO:
         :param data: data to write
         :type data: :py:class:`bytes`
         """
-        raise NotImplementedError
 
     @universal_exception
+    @defend_file_methods
+    @abc.abstractmethod
     async def read(self, file, block_size):
         """
         :py:func:`asyncio.coroutine`
@@ -298,9 +347,10 @@ class AbstractPathIO:
 
         :rtype: :py:class:`bytes`
         """
-        raise NotImplementedError
 
     @universal_exception
+    @defend_file_methods
+    @abc.abstractmethod
     async def close(self, file):
         """
         :py:func:`asyncio.coroutine`
@@ -309,9 +359,9 @@ class AbstractPathIO:
 
         :param file: file-object from :py:class:`aioftp.AbstractPathIO.open`
         """
-        raise NotImplementedError
 
     @universal_exception
+    @abc.abstractmethod
     async def rename(self, source, destination):
         """
         :py:func:`asyncio.coroutine`
@@ -324,7 +374,6 @@ class AbstractPathIO:
         :param destination: rename to
         :type destination: :py:class:`pathlib.Path`
         """
-        raise NotImplementedError
 
 
 class PathIO(AbstractPathIO):
@@ -345,8 +394,8 @@ class PathIO(AbstractPathIO):
         return path.is_file()
 
     @universal_exception
-    async def mkdir(self, path, *, parents=False):
-        return path.mkdir(parents=parents)
+    async def mkdir(self, path, *, parents=False, exist_ok=False):
+        return path.mkdir(parents=parents, exist_ok=exist_ok)
 
     @universal_exception
     async def rmdir(self, path):
@@ -359,14 +408,12 @@ class PathIO(AbstractPathIO):
     def list(self, path):
 
         class Lister(AbstractAsyncLister):
-
-            @universal_exception
-            async def __aiter__(self):
-                self.iter = path.glob("*")
-                return self
+            iter = None
 
             @universal_exception
             async def __anext__(self):
+                if self.iter is None:
+                    self.iter = path.glob("*")
                 try:
                     return next(self.iter)
                 except StopIteration:
@@ -383,18 +430,22 @@ class PathIO(AbstractPathIO):
         return path.open(*args, **kwargs)
 
     @universal_exception
+    @defend_file_methods
     async def seek(self, file, *args, **kwargs):
         return file.seek(*args, **kwargs)
 
     @universal_exception
+    @defend_file_methods
     async def write(self, file, *args, **kwargs):
         return file.write(*args, **kwargs)
 
     @universal_exception
+    @defend_file_methods
     async def read(self, file, *args, **kwargs):
         return file.read(*args, **kwargs)
 
     @universal_exception
+    @defend_file_methods
     async def close(self, file):
         return file.close()
 
@@ -428,8 +479,8 @@ class AsyncPathIO(AbstractPathIO):
 
     @universal_exception
     @with_timeout
-    async def mkdir(self, path, *, parents=False):
-        f = functools.partial(path.mkdir, parents=parents)
+    async def mkdir(self, path, *, parents=False, exist_ok=False):
+        f = functools.partial(path.mkdir, parents=parents, exist_ok=exist_ok)
         return await self.loop.run_in_executor(None, f)
 
     @universal_exception
@@ -445,6 +496,7 @@ class AsyncPathIO(AbstractPathIO):
     def list(self, path):
 
         class Lister(AbstractAsyncLister):
+            iter = None
 
             def worker(self):
                 try:
@@ -454,14 +506,10 @@ class AsyncPathIO(AbstractPathIO):
 
             @universal_exception
             @with_timeout
-            async def __aiter__(self):
-                f = functools.partial(path.glob, "*")
-                self.iter = await self.loop.run_in_executor(None, f)
-                return self
-
-            @universal_exception
-            @with_timeout
             async def __anext__(self):
+                if self.iter is None:
+                    f = functools.partial(path.glob, "*")
+                    self.iter = await self.loop.run_in_executor(None, f)
                 return await self.loop.run_in_executor(None, self.worker)
 
         return Lister(timeout=self.timeout, loop=self.loop)
@@ -478,24 +526,28 @@ class AsyncPathIO(AbstractPathIO):
         return await self.loop.run_in_executor(None, f)
 
     @universal_exception
+    @defend_file_methods
     @with_timeout
     async def seek(self, file, *args, **kwargs):
         f = functools.partial(file.seek, *args, **kwargs)
         return await self.loop.run_in_executor(None, f)
 
     @universal_exception
+    @defend_file_methods
     @with_timeout
     async def write(self, file, *args, **kwargs):
         f = functools.partial(file.write, *args, **kwargs)
         return await self.loop.run_in_executor(None, f)
 
     @universal_exception
+    @defend_file_methods
     @with_timeout
     async def read(self, file, *args, **kwargs):
         f = functools.partial(file.read, *args, **kwargs)
         return await self.loop.run_in_executor(None, f)
 
     @universal_exception
+    @defend_file_methods
     @with_timeout
     async def close(self, file):
         return await self.loop.run_in_executor(None, file.close)
@@ -545,16 +597,30 @@ class MemoryPathIO(AbstractPathIO):
         )
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, state=None, cwd=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fs = [Node("dir", "/", content=[])]
+        self.cwd = pathlib.PurePosixPath(cwd or "/")
+        if state is None:
+            self.fs = [Node("dir", "/", content=[])]
+        else:
+            self.fs = state
+
+    @property
+    def state(self):
+        return self.fs
 
     def __repr__(self):
         return repr(self.fs)
 
+    def _absolute(self, path):
+        if not path.is_absolute():
+            path = self.cwd / path
+        return path
+
     def get_node(self, path):
         nodes = self.fs
         node = None
+        path = self._absolute(path)
         for part in path.parts:
             if not isinstance(nodes, list):
                 return
@@ -581,15 +647,18 @@ class MemoryPathIO(AbstractPathIO):
         return not (node is None or node.type != "file")
 
     @universal_exception
-    async def mkdir(self, path, *, parents=False):
-        if self.get_node(path):
-            raise FileExistsError
+    async def mkdir(self, path, *, parents=False, exist_ok=False):
+        path = self._absolute(path)
+        node = self.get_node(path)
+        if node:
+            if node.type != "dir" or not exist_ok:
+                raise FileExistsError
         elif not parents:
             parent = self.get_node(path.parent)
             if parent is None:
                 raise FileNotFoundError
             elif parent.type != "dir":
-                raise FileExistsError
+                raise NotADirectoryError
             node = Node("dir", path.name, content=[])
             parent.content.append(node)
         else:
@@ -605,7 +674,7 @@ class MemoryPathIO(AbstractPathIO):
                         nodes.append(node)
                         nodes = node.content
                 else:
-                    raise FileExistsError
+                    raise NotADirectoryError
 
     @universal_exception
     async def rmdir(self, path):
@@ -640,20 +709,18 @@ class MemoryPathIO(AbstractPathIO):
     def list(self, path):
 
         class Lister(AbstractAsyncLister):
-
-            @universal_exception
-            async def __aiter__(cls):
-                node = self.get_node(path)
-                if node is None or node.type != "dir":
-                    cls.iter = iter(())
-                else:
-                    names = map(operator.attrgetter("name"), node.content)
-                    paths = map(lambda name: path / name, names)
-                    cls.iter = iter(paths)
-                return cls
+            iter = None
 
             @universal_exception
             async def __anext__(cls):
+                if cls.iter is None:
+                    node = self.get_node(path)
+                    if node is None or node.type != "dir":
+                        cls.iter = iter(())
+                    else:
+                        names = map(operator.attrgetter("name"), node.content)
+                        paths = map(lambda name: path / name, names)
+                        cls.iter = iter(paths)
                 try:
                     return next(cls.iter)
                 except StopIteration:
@@ -714,19 +781,23 @@ class MemoryPathIO(AbstractPathIO):
         return file_like
 
     @universal_exception
+    @defend_file_methods
     async def seek(self, file, *args, **kwargs):
         return file.seek(*args, **kwargs)
 
     @universal_exception
+    @defend_file_methods
     async def write(self, file, *args, **kwargs):
         file.write(*args, **kwargs)
         file.mtime = int(time.time())
 
     @universal_exception
+    @defend_file_methods
     async def read(self, file, *args, **kwargs):
         return file.read(*args, **kwargs)
 
     @universal_exception
+    @defend_file_methods
     async def close(self, file):
         pass
 

@@ -3,7 +3,7 @@ import re
 import collections
 import pathlib
 import logging
-import time
+import datetime
 
 from . import errors
 from . import pathio
@@ -19,7 +19,8 @@ from .common import (
     DEFAULT_BLOCK_SIZE,
     AsyncListerMixin,
     async_enterable,
-    setlocale
+    setlocale,
+    HALF_OF_YEAR_IN_SECONDS,
 )
 
 __all__ = (
@@ -29,13 +30,14 @@ __all__ = (
     "DataConnectionThrottleStreamIO",
     "Code",
 )
-logger = logging.getLogger("aioftp.client")
+logger = logging.getLogger(__name__)
 
 
-async def open_connection(host, port, loop, create_connection):
+async def open_connection(host, port, loop, create_connection, ssl=None):
     reader = asyncio.StreamReader(loop=loop)
     protocol = asyncio.StreamReaderProtocol(reader, loop=loop)
-    transport, _ = await create_connection(lambda: protocol, host, port)
+    transport, _ = await create_connection(lambda: protocol,
+                                           host, port, ssl=ssl)
     writer = asyncio.StreamWriter(transport, protocol, reader, loop)
     return reader, writer
 
@@ -108,7 +110,8 @@ class BaseClient:
     def __init__(self, *, loop=None, create_connection=None,
                  socket_timeout=None, read_speed_limit=None,
                  write_speed_limit=None, path_timeout=None,
-                 path_io_factory=pathio.PathIO, encoding="utf-8"):
+                 path_io_factory=pathio.PathIO, encoding="utf-8",
+                 ssl=None):
         self.loop = loop or asyncio.get_event_loop()
         self.create_connection = create_connection or \
             self.loop.create_connection
@@ -122,6 +125,7 @@ class BaseClient:
         self.path_io = path_io_factory(timeout=path_timeout, loop=loop)
         self.encoding = encoding
         self.stream = None
+        self.ssl = ssl
 
     async def connect(self, host, port=DEFAULT_PORT):
         self.server_host = host
@@ -131,6 +135,7 @@ class BaseClient:
             port,
             self.loop,
             self.create_connection,
+            self.ssl,
         )
         self.stream = ThrottleStreamIO(
             reader,
@@ -248,9 +253,26 @@ class BaseClient:
                 self.check_codes(expected_codes, code, info)
             return code, info
 
-    def parse_address_response(self, s):
+    @staticmethod
+    def parse_epsv_response(s):
         """
-        Parsing ip:port server response.
+        Parsing `EPSV` (`message (|||port|)`) response.
+
+        :param s: response line
+        :type s: :py:class:`str`
+
+        :return: (ip, port)
+        :rtype: (:py:class:`None`, :py:class:`int`)
+        """
+        matches = tuple(re.finditer(r"\((.)\1\1\d+\1\)", s))
+        s = matches[-1].group()
+        port = int(s[4:-2])
+        return None, port
+
+    @staticmethod
+    def parse_pasv_response(s):
+        """
+        Parsing `PASV` server response.
 
         :param s: response line
         :type s: :py:class:`str`
@@ -264,7 +286,8 @@ class BaseClient:
         port = (nums[4] << 8) | nums[5]
         return ip, port
 
-    def parse_directory_response(self, s):
+    @staticmethod
+    def parse_directory_response(s):
         """
         Parsing directory server response.
 
@@ -332,7 +355,18 @@ class BaseClient:
         return mode
 
     @staticmethod
-    def parse_ls_date(s):
+    def format_date_time(d):
+        """
+        Formats dates from strptime in a consistent format
+
+        :param d: return value from strptime
+        :type d: :py:class:`datetime`
+
+        :rtype: :py:class`str`
+        """
+        return d.strftime("%Y%m%d%H%M00")
+
+    def parse_ls_date(self, s, *, now=None):
         """
         Parsing dates from the ls unix utility. For example,
         "Nov 18  1958" and "Nov 18 12:29".
@@ -344,12 +378,20 @@ class BaseClient:
         """
         with setlocale("C"):
             try:
-                d = time.strptime(s, "%b %d %H:%M")
+                if now is None:
+                    now = datetime.datetime.now()
+                d = datetime.datetime.strptime(s, "%b %d %H:%M")
+                d = d.replace(year=now.year)
+                diff = (now - d).total_seconds()
+                if diff > HALF_OF_YEAR_IN_SECONDS:
+                    d = d.replace(year=now.year + 1)
+                elif diff < -HALF_OF_YEAR_IN_SECONDS:
+                    d = d.replace(year=now.year - 1)
             except ValueError:
-                d = time.strptime(s, "%b %d  %Y")
-        return time.strftime("%Y%m%d%H%M00", d)
+                d = datetime.datetime.strptime(s, "%b %d  %Y")
+        return self.format_date_time(d)
 
-    def parse_list_line(self, b):
+    def parse_list_line_unix(self, b):
         """
         Attempt to parse a LIST line (similar to unix ls utility).
 
@@ -359,11 +401,7 @@ class BaseClient:
         :return: (path, info)
         :rtype: (:py:class:`pathlib.PurePosixPath`, :py:class:`dict`)
         """
-        if isinstance(b, bytes):
-            s = b.decode(encoding=self.encoding)
-        else:
-            s = b
-        s = s.rstrip()
+        s = b.decode(encoding=self.encoding).rstrip()
         info = {}
         if s[0] == "-":
             info["type"] = "file"
@@ -407,6 +445,62 @@ class BaseClient:
             info["type"] = "dir" if link_dst[i] == "/" else "file"
             s = link_src
         return pathlib.PurePosixPath(s), info
+
+    def parse_list_line_windows(self, b):
+        """
+        Parsing Microsoft Windows `dir` output
+
+        :param b: response line
+        :type b: :py:class:`bytes` or :py:class:`str`
+
+        :return: (path, info)
+        :rtype: (:py:class:`pathlib.PurePosixPath`, :py:class:`dict`)
+        """
+        line = b.decode(encoding=self.encoding).rstrip("\r\n")
+        date_time_end = line.index("M")
+        date_time_str = line[:date_time_end + 1].strip().split(" ")
+        date_time_str = " ".join([x for x in date_time_str if len(x) > 0])
+        line = line[date_time_end + 1:].lstrip()
+        with setlocale("C"):
+            strptime = datetime.datetime.strptime
+            date_time = strptime(date_time_str, "%m/%d/%Y %I:%M %p")
+        info = {}
+        info["modify"] = self.format_date_time(date_time)
+        next_space = line.index(" ")
+        if line.startswith("<DIR>"):
+            info["type"] = "dir"
+        else:
+            info["type"] = "file"
+            info["size"] = line[:next_space].replace(",", "")
+            if not info["size"].isdigit():
+                raise ValueError
+        # This here could cause a problem if a filename started with
+        # whitespace, but if we were to try to detect such a condition
+        # we would have to make strong assumptions about the input format
+        filename = line[next_space:].lstrip()
+        if filename == "." or filename == "..":
+            raise ValueError
+        return pathlib.PurePosixPath(filename), info
+
+    def parse_list_line(self, b):
+        """
+        Parse LIST response with both Microsoft Windows® parser and
+        UNIX parser
+
+        :param b: response line
+        :type b: :py:class:`bytes` or :py:class:`str`
+
+        :return: (path, info)
+        :rtype: (:py:class:`pathlib.PurePosixPath`, :py:class:`dict`)
+        """
+        ex = []
+        parsers = (self.parse_list_line_unix, self.parse_list_line_windows)
+        for parser in parsers:
+            try:
+                return parser(b)
+            except (ValueError, KeyError, IndexError) as e:
+                ex.append(e)
+        raise ValueError("All parsers failed to parse", b, ex)
 
     def parse_mlsx_line(self, b):
         """
@@ -463,6 +557,14 @@ class Client(BaseClient):
 
     :param encoding: encoding to use for convertion strings to bytes
     :type encoding: :py:class:`str`
+
+    :param ssl: if given and not false, a SSL/TLS transport is created
+        (by default a plain TCP transport is created).
+        If ssl is a ssl.SSLContext object, this context is used to create
+        the transport; if ssl is True, a default context returned from
+        ssl.create_default_context() is used.
+        Please look :py:meth:`asyncio.loop.create_connection` docs.
+    :type ssl: :py:class:`bool` or :py:class:`ssl.SSLContext`
     """
     async def connect(self, host, port=DEFAULT_PORT):
         """
@@ -570,7 +672,7 @@ class Client(BaseClient):
         """
         await self.command("RMD " + str(path), "250")
 
-    def list(self, path="", *, recursive=False):
+    def list(self, path="", *, recursive=False, raw_command=None):
         """
         :py:func:`asyncio.coroutine`
 
@@ -581,6 +683,10 @@ class Client(BaseClient):
 
         :param recursive: list recursively
         :type recursive: :py:class:`bool`
+
+        :param raw_command: optional ftp command to use in place of
+            fallback logic (must be one of "MLSD", "LIST")
+        :type raw_command: :py:class:`str`
 
         :rtype: :py:class:`list` or `async for` context
 
@@ -600,26 +706,34 @@ class Client(BaseClient):
             >>> stats = await client.list()
         """
         class AsyncLister(AsyncListerMixin):
+            stream = None
 
             async def _new_stream(cls, local_path):
                 cls.path = local_path
                 cls.parse_line = self.parse_mlsx_line
-                try:
-                    command = ("MLSD " + str(cls.path)).strip()
+                if raw_command not in [None, "MLSD", "LIST"]:
+                    t = "raw_command must be one of MLSD or LIST, but got {}"
+                    raise ValueError(t.format(raw_command))
+                if raw_command in [None, "MLSD"]:
+                    try:
+                        command = ("MLSD " + str(cls.path)).strip()
+                        return await self.get_stream(command, "1xx")
+                    except errors.StatusCodeError as e:
+                        code = e.received_codes[-1]
+                        if not code.matches("50x") or raw_command is not None:
+                            raise
+                if raw_command in [None, "LIST"]:
+                    cls.parse_line = self.parse_list_line
+                    command = ("LIST " + str(cls.path)).strip()
                     return await self.get_stream(command, "1xx")
-                except errors.StatusCodeError as e:
-                    if not e.received_codes[-1].matches("50x"):
-                        raise
-                cls.parse_line = self.parse_list_line
-                command = ("LIST " + str(cls.path)).strip()
-                return await self.get_stream(command, "1xx")
 
-            async def __aiter__(cls):
-                cls.stream = await cls._new_stream(path)
+            def __aiter__(cls):
                 cls.directories = collections.deque()
                 return cls
 
             async def __anext__(cls):
+                if cls.stream is None:
+                    cls.stream = await cls._new_stream(path)
                 while True:
                     line = await cls.stream.readline()
                     while not line:
@@ -630,7 +744,12 @@ class Client(BaseClient):
                             line = await cls.stream.readline()
                         else:
                             raise StopAsyncIteration
-                    name, info = cls.parse_line(line)
+
+                    try:
+                        name, info = cls.parse_line(line)
+                    except Exception:
+                        continue
+
                     stat = cls.path / name, info
                     if info["type"] == "dir" and recursive:
                         cls.directories.append(stat)
@@ -772,7 +891,7 @@ class Client(BaseClient):
         :param offset: byte offset for stream start position
         :type offset: :py:class:`int`
 
-        :rtype: :py:class:`aioftp.ThrottleStreamIO`
+        :rtype: :py:class:`aioftp.DataConnectionThrottleStreamIO`
         """
         return self.get_stream(
             "STOR " + str(destination),
@@ -790,7 +909,7 @@ class Client(BaseClient):
         :param offset: byte offset for stream start position
         :type offset: :py:class:`int`
 
-        :rtype: :py:class:`aioftp.ThrottleStreamIO`
+        :rtype: :py:class:`aioftp.DataConnectionThrottleStreamIO`
         """
         return self.get_stream(
             "APPE " + str(destination),
@@ -863,7 +982,7 @@ class Client(BaseClient):
         :param offset: byte offset for stream start position
         :type offset: :py:class:`int`
 
-        :rtype: :py:class:`aioftp.ThrottleStreamIO`
+        :rtype: :py:class:`aioftp.DataConnectionThrottleStreamIO`
         """
         return self.get_stream("RETR " + str(source), "1xx", offset=offset)
 
@@ -894,24 +1013,19 @@ class Client(BaseClient):
         if not write_into:
             destination = destination / source.name
         if await self.is_file(source):
-            if not await self.path_io.exists(destination.parent):
-                await self.path_io.mkdir(destination.parent)
+            await self.path_io.mkdir(destination.parent,
+                                     parents=True, exist_ok=True)
             async with self.path_io.open(destination, mode="wb") as file_out, \
                     self.download_stream(source) as stream:
                 async for block in stream.iter_by_block(block_size):
                     await file_out.write(block)
         elif await self.is_dir(source):
-            if not await self.path_io.exists(destination):
-                await self.path_io.mkdir(destination, parents=True)
+            await self.path_io.mkdir(destination, parents=True, exist_ok=True)
             for name, info in (await self.list(source)):
                 full = destination / name.relative_to(source)
                 if info["type"] in ("file", "dir"):
-                    await self.download(
-                        name,
-                        full,
-                        write_into=True,
-                        block_size=block_size
-                    )
+                    await self.download(name, full, write_into=True,
+                                        block_size=block_size)
 
     async def quit(self):
         """
@@ -922,7 +1036,18 @@ class Client(BaseClient):
         await self.command("QUIT", "2xx")
         self.close()
 
-    async def get_passive_connection(self, conn_type="I"):
+    async def _do_epsv(self):
+        code, info = await self.command("EPSV", "229")
+        ip, port = self.parse_epsv_response(info[-1])
+        return ip, port
+
+    async def _do_pasv(self):
+        code, info = await self.command("PASV", "227")
+        ip, port = self.parse_pasv_response(info[-1])
+        return ip, port
+
+    async def get_passive_connection(self, conn_type="I",
+                                     commands=("epsv", "pasv")):
         """
         :py:func:`asyncio.coroutine`
 
@@ -931,19 +1056,40 @@ class Client(BaseClient):
         :param conn_type: connection type ("I", "A", "E", "L")
         :type conn_type: :py:class:`str`
 
+        :param commands: sequence of commands to try to initiate passive
+            server creation. First success wins. Default is EPSV, then PASV.
+        :type commands: :py:class:`list`
+
         :rtype: (:py:class:`asyncio.StreamReader`,
             :py:class:`asyncio.StreamWriter`)
         """
+        functions = {
+            "epsv": self._do_epsv,
+            "pasv": self._do_pasv,
+        }
+        if not commands:
+            raise ValueError("No passive commands provided")
         await self.command("TYPE " + conn_type, "200")
-        code, info = await self.command("PASV", "227")
-        ip, port = self.parse_address_response(info[-1])
-        if ip == "0.0.0.0":
+        for i, name in enumerate(commands, start=1):
+            name = name.lower()
+            if name not in functions:
+                names = set(functions)
+                raise ValueError("{!r} not in {!r}".format(name, names))
+            try:
+                ip, port = await functions[name]()
+                break
+            except errors.StatusCodeError as e:
+                is_last = i == len(commands)
+                if is_last or not e.received_codes[-1].matches("50x"):
+                    raise
+        if ip in ("0.0.0.0", None):
             ip = self.server_host
         reader, writer = await open_connection(
             ip,
             port,
             self.loop,
             self.create_connection,
+            self.ssl,
         )
         return reader, writer
 
@@ -1039,7 +1185,7 @@ class ClientSession:
         try:
             await self.client.connect(self.host, self.port)
             await self.client.login(self.user, self.password, self.account)
-        except:
+        except Exception:
             self.client.close()
             raise
         return self.client

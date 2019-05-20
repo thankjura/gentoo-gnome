@@ -8,6 +8,8 @@ import collections
 import enum
 import logging
 import stat
+import sys
+import abc
 
 from . import errors
 from . import pathio
@@ -18,6 +20,7 @@ from .common import (
     StreamThrottle,
     ThrottleStreamIO,
     setlocale,
+    HALF_OF_YEAR_IN_SECONDS,
 )
 
 
@@ -35,7 +38,14 @@ __all__ = (
     "AbstractServer",
     "Server",
 )
-logger = logging.getLogger("aioftp.server")
+
+IS_PY37_PLUS = sys.version_info[:2] >= (3, 7)
+if IS_PY37_PLUS:
+    get_current_task = asyncio.current_task
+else:
+    get_current_task = asyncio.Task.current_task
+
+logger = logging.getLogger(__name__)
 
 
 class Permission:
@@ -123,10 +133,7 @@ class User:
                  write_speed_limit_per_connection=None):
         self.login = login
         self.password = password
-        if isinstance(base_path, str):
-            self.base_path = pathlib.Path(base_path)
-        else:
-            self.base_path = base_path
+        self.base_path = pathlib.Path(base_path)
         self.home_path = pathlib.PurePosixPath(home_path)
         if not self.home_path.is_absolute():
             raise errors.PathIsNotAbsolute(home_path)
@@ -179,7 +186,7 @@ class User:
         )
 
 
-class AbstractUserManager:
+class AbstractUserManager(abc.ABC):
     """
     Abstract user manager.
 
@@ -199,6 +206,7 @@ class AbstractUserManager:
         self.timeout = timeout
         self.loop = loop or asyncio.get_event_loop()
 
+    @abc.abstractmethod
     async def get_user(self, login):
         """
         :py:func:`asyncio.coroutine`
@@ -208,8 +216,8 @@ class AbstractUserManager:
         :param login: user's login
         :type login: :py:class:`str`
         """
-        raise NotImplementedError
 
+    @abc.abstractmethod
     async def authenticate(self, user, password):
         """
         :py:func:`asyncio.coroutine`
@@ -224,7 +232,6 @@ class AbstractUserManager:
 
         :rtype: :py:class:`bool`
         """
-        raise NotImplementedError
 
     async def notify_logout(self, user):
         """
@@ -235,7 +242,6 @@ class AbstractUserManager:
         :param user: user
         :type user: :py:class:`aioftp.User`
         """
-        pass
 
 
 class MemoryUserManager(AbstractUserManager):
@@ -401,7 +407,7 @@ class AvailableConnections:
                 raise ValueError("Too many releases")
 
 
-class AbstractServer:
+class AbstractServer(abc.ABC):
 
     async def start(self, host=None, port=0, **kwargs):
         """
@@ -418,6 +424,7 @@ class AbstractServer:
         :param kwargs: keyword arguments, they passed to
             :py:func:`asyncio.start_server`
         """
+        self._start_server_extra_arguments = kwargs
         self.connections = {}
         self.server_host = host
         self.server_port = port
@@ -426,29 +433,38 @@ class AbstractServer:
             host,
             port,
             loop=self.loop,
-            **kwargs
+            ssl=self.ssl,
+            **self._start_server_extra_arguments,
         )
         for sock in self.server.sockets:
-            if sock.family == socket.AF_INET:
-                host, port = sock.getsockname()
-                logger.info("serving on {}:{}".format(host, port))
+            if sock.family in (socket.AF_INET, socket.AF_INET6):
+                host, port, *_ = sock.getsockname()
+                if not self.server_port:
+                    self.server_port = port
+                if not self.server_host:
+                    self.server_host = host
+                logger.info("serving on %s:%s", host, port)
 
-    def close(self):
+    @property
+    def address(self):
         """
-        Shutdown the server and close all connections. Use this method with
-        :py:meth:`aioftp.Server.wait_closed`
+        Server listen socket host and port as :py:class:`tuple`
         """
-        self.server.close()
-        for connection in self.connections.values():
-            connection._dispatcher.cancel()
+        return self.server_host, self.server_port
 
-    async def wait_closed(self):
+    async def close(self):
         """
         :py:func:`asyncio.coroutine`
 
-        Wait server to stop.
+        Shutdown the server and close all connections.
         """
-        await self.server.wait_closed()
+        self.server.close()
+        tasks = [self.server.wait_closed()]
+        for connection in self.connections.values():
+            connection._dispatcher.cancel()
+            tasks.append(connection._dispatcher)
+        logger.info("waiting for %d tasks", len(tasks))
+        await asyncio.wait(tasks)
 
     async def write_line(self, stream, line):
         logger.info(line)
@@ -528,8 +544,13 @@ class AbstractServer:
             finally:
                 response_queue.task_done()
 
+    @abc.abstractmethod
     async def dispatcher(self, reader, writer):
-        raise NotImplementedError
+        """
+        :py:func:`asyncio.coroutine`
+
+        Server connection handler (main routine per user).
+        """
 
 
 class ConnectionConditions:
@@ -778,6 +799,11 @@ class Server(AbstractServer):
 
     :param encoding: encoding to use for convertion strings to bytes
     :type encoding: :py:class:`str`
+
+    :param ssl: can be set to an :py:class:`ssl.SSLContext` instance
+        to enable TLS over the accepted connections.
+        Please look :py:meth:`asyncio.loop.create_server` docs.
+    :type ssl: :py:class:`ssl.SSLContext`
     """
     path_facts = (
         ("st_size", "Size"),
@@ -801,13 +827,15 @@ class Server(AbstractServer):
                  read_speed_limit_per_connection=None,
                  write_speed_limit_per_connection=None,
                  data_ports=None,
-                 encoding="utf-8"):
+                 encoding="utf-8",
+                 ssl=None):
         self.loop = loop or asyncio.get_event_loop()
         self.block_size = block_size
         self.socket_timeout = socket_timeout
         self.idle_timeout = idle_timeout
         self.wait_future_timeout = wait_future_timeout
-        self.path_io = path_io_factory(timeout=path_timeout, loop=self.loop)
+        self.path_io_factory = pathio.PathIONursery(path_io_factory)
+        self.path_timeout = path_timeout
         if data_ports is not None:
             self.available_data_ports = asyncio.PriorityQueue(loop=self.loop)
             for data_port in data_ports:
@@ -833,11 +861,12 @@ class Server(AbstractServer):
         )
         self.throttle_per_user = {}
         self.encoding = encoding
+        self.ssl = ssl
 
     async def dispatcher(self, reader, writer):
-        host, port = writer.transport.get_extra_info("peername", ("", ""))
-        message = "new connection from {}:{}".format(host, port)
-        logger.info(message)
+        host, port, *_ = writer.transport.get_extra_info("peername", ("", ""))
+        current_server_host, *_ = writer.transport.get_extra_info("sockname")
+        logger.info("new connection from %s:%s", host, port)
         key = stream = ThrottleStreamIO(
             reader,
             writer,
@@ -853,7 +882,7 @@ class Server(AbstractServer):
         connection = Connection(
             client_host=host,
             client_port=port,
-            server_host=self.server_host,
+            server_host=self.server_host or current_server_host,
             passive_server_port=0,
             server_port=self.server_port,
             command_connection=stream,
@@ -861,14 +890,18 @@ class Server(AbstractServer):
             idle_timeout=self.idle_timeout,
             wait_future_timeout=self.wait_future_timeout,
             block_size=self.block_size,
-            path_io=self.path_io,
+            path_io_factory=self.path_io_factory,
+            path_timeout=self.path_timeout,
             loop=self.loop,
             extra_workers=set(),
             response=lambda *args: response_queue.put_nowait(args),
             acquired=False,
             restart_offset=0,
-            _dispatcher=asyncio.Task.current_task(loop=self.loop),
+            _dispatcher=get_current_task(loop=self.loop),
         )
+        connection.path_io = self.path_io_factory(timeout=self.path_timeout,
+                                                  loop=self.loop,
+                                                  connection=connection)
         pending = {
             self.greeting(connection, ""),
             self.response_writer(stream, response_queue),
@@ -885,11 +918,7 @@ class Server(AbstractServer):
                 connection.extra_workers -= done
                 for task in done:
                     try:
-                        try:
-                            result = task.result()
-                        except:
-                            logger.exception("dispatcher caught exception")
-                            raise
+                        result = task.result()
                     except errors.PathIOError:
                         connection.response("451", "file system error")
                         continue
@@ -912,13 +941,18 @@ class Server(AbstractServer):
                         else:
                             message = "'{}' not implemented".format(cmd)
                             connection.response("502", message)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("dispatcher caught exception")
         finally:
-            message = "closing connection from {}:{}".format(host, port)
-            logger.info(message)
+            logger.info("closing connection from %s:%s", host, port)
+            tasks_to_wait = []
             if not connection.loop.is_closed():
                 for task in pending | connection.extra_workers:
                     if isinstance(task, asyncio.Task):
                         task.cancel()
+                        tasks_to_wait.append(task)
                 if connection.future.passive_server.done():
                     connection.passive_server.close()
                     if self.available_data_ports is not None:
@@ -930,8 +964,11 @@ class Server(AbstractServer):
             if connection.acquired:
                 self.available_connections.release()
             if connection.future.user.done():
-                await self.user_manager.notify_logout(connection.user)
+                task = self.user_manager.notify_logout(connection.user)
+                tasks_to_wait.append(task)
             self.connections.pop(key)
+            if tasks_to_wait:
+                await asyncio.wait(tasks_to_wait)
 
     def get_paths(self, connection, path):
         """
@@ -1013,10 +1050,9 @@ class Server(AbstractServer):
 
     @ConnectionConditions(ConnectionConditions.user_required)
     async def pass_(self, connection, rest):
-        auth = self.user_manager.authenticate(connection.user, rest)
         if connection.future.logged.done():
             code, info = "503", "already logged in"
-        elif await auth:
+        elif await self.user_manager.authenticate(connection.user, rest):
             connection.logged = True
             code, info = "230", "normal login"
         else:
@@ -1076,7 +1112,7 @@ class Server(AbstractServer):
         elif await connection.path_io.is_dir(path):
             stats["Type"] = "dir"
         else:
-            raise errors.PathIsNotFileOrDir(path)
+            stats["Type"] = "unknown"
 
         raw = await connection.path_io.stat(path)
         for attr, fact in Server.path_facts:
@@ -1118,16 +1154,21 @@ class Server(AbstractServer):
         connection.response("150", "mlsd transfer started")
         return True
 
+    @staticmethod
+    def build_list_mtime(st_mtime, now=None):
+        if now is None:
+            now = time.time()
+        mtime = time.localtime(st_mtime)
+        with setlocale("C"):
+            if now - HALF_OF_YEAR_IN_SECONDS < st_mtime <= now:
+                s = time.strftime("%b %e %H:%M", mtime)
+            else:
+                s = time.strftime("%b %e  %Y", mtime)
+        return s
+
     async def build_list_string(self, connection, path):
         stats = await connection.path_io.stat(path)
-        now = time.time()
-        mtime = time.localtime(stats.st_mtime)
-        with setlocale("C"):
-            if now - 365 * 24 * 60 * 60 / 2 < stats.st_mtime <= now:
-                mtime = time.strftime('%b %e %H:%M', mtime)
-            else:
-                mtime = time.strftime('%b %e  %Y', mtime)
-
+        mtime = self.build_list_mtime(stats.st_mtime)
         fields = (
             stat.filemode(stats.st_mode),
             str(stats.st_nlink),
@@ -1288,11 +1329,25 @@ class Server(AbstractServer):
 
     @ConnectionConditions(ConnectionConditions.login_required)
     async def type(self, connection, rest):
-        if rest == "I":
+        if rest in ("I", "A"):
             connection.transfer_type = rest
             code, info = "200", ""
         else:
             code, info = "502", "type '{}' not implemented".format(rest)
+        connection.response(code, info)
+        return True
+
+    @ConnectionConditions(ConnectionConditions.login_required)
+    async def pbsz(self, connection, rest):
+        connection.response("200", "")
+        return True
+
+    @ConnectionConditions(ConnectionConditions.login_required)
+    async def prot(self, connection, rest):
+        if rest == "P":
+            code, info = "200", ""
+        else:
+            code, info = "502", ""
         connection.response(code, info)
         return True
 
@@ -1309,7 +1364,9 @@ class Server(AbstractServer):
                         handler_callback,
                         connection.server_host,
                         port,
-                        loop=connection.loop
+                        loop=connection.loop,
+                        ssl=self.ssl,
+                        **self._start_server_extra_arguments,
                     )
                     connection.passive_server_port = port
                     break
@@ -1325,6 +1382,8 @@ class Server(AbstractServer):
                 connection.server_host,
                 connection.passive_server_port,
                 loop=connection.loop,
+                ssl=self.ssl,
+                **self._start_server_extra_arguments,
             )
         return passive_server
 
@@ -1358,9 +1417,54 @@ class Server(AbstractServer):
             if sock.family == socket.AF_INET:
                 host, port = sock.getsockname()
                 break
+        else:
+            connection.response("503", ["this server started in ipv6 mode"])
+            return False
 
         nums = tuple(map(int, host.split("."))) + (port >> 8, port & 0xff)
         info.append("({})".format(",".join(map(str, nums))))
+        if connection.future.data_connection.done():
+            connection.data_connection.close()
+            del connection.data_connection
+        connection.response(code, info)
+        return True
+
+    @ConnectionConditions(ConnectionConditions.login_required)
+    async def epsv(self, connection, rest):
+
+        async def handler(reader, writer):
+            if connection.future.data_connection.done():
+                writer.close()
+            else:
+                connection.data_connection = ThrottleStreamIO(
+                    reader,
+                    writer,
+                    throttles=connection.command_connection.throttles,
+                    timeout=connection.socket_timeout,
+                    loop=connection.loop
+                )
+
+        if rest:
+            code, info = "522", ["custom protocols support not implemented"]
+            connection.response(code, info)
+            return False
+        if not connection.future.passive_server.done():
+            coro = self._start_passive_server(connection, handler)
+            try:
+                connection.passive_server = await coro
+            except errors.NoAvailablePort:
+                connection.response("421", ["no free ports"])
+                return False
+            code, info = "229", ["listen socket created"]
+        else:
+            code, info = "229", ["listen socket already exists"]
+
+        for sock in connection.passive_server.sockets:
+            if sock.family in (socket.AF_INET, socket.AF_INET6):
+                _, port, *_ = sock.getsockname()
+                break
+
+        info[0] += " (|||{}|)".format(port)
         if connection.future.data_connection.done():
             connection.data_connection.close()
             del connection.data_connection
