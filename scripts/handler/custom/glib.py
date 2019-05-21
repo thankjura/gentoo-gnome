@@ -1,12 +1,12 @@
 from ..version import get_last_local_version
 from ..ebuild import create_ebuild
 
-ATOM = 'dev-util/gdbus-codegen'
-ATOM = 'dev-util/glib-utils'
+ATOMS = ('dev-util/gdbus-codegen', 'dev-util/glib-utils')
 
 
 async def run(new_version):
     #print("check ebuild for %s" % ATOM)
-    last_version = sorted(get_last_local_version(ATOM))[-1]
-    if last_version < new_version:
-        await create_ebuild(ATOM, new_version)
+    for ATOM in ATOMS:
+        last_version = sorted(get_last_local_version(ATOM))[-1]
+        if last_version < new_version:
+            await create_ebuild(ATOM, new_version)
