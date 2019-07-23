@@ -20,7 +20,7 @@ KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~sparc ~x86"
 # tracker-2.1.7 currently always depends on ICU (theoretically could be libunistring instead); so choose ICU over enca always here for the time being (ICU is preferred)
 RDEPEND="
 	>=dev-libs/glib-2.46:2
-	>=app-misc/tracker-2.1.0:=
+	>=app-misc/tracker-${PV}:=
 	gstreamer? (
 		media-libs/gstreamer:1.0
 		media-libs/gst-plugins-base:1.0 )
@@ -62,9 +62,7 @@ DEPEND="${RDEPEND}
 	>=dev-util/intltool-0.40.0
 	>=sys-devel/gettext-0.19.8
 	virtual/pkgconfig
-	test? ( ${PYTHON_DEPS}
-		gstreamer? ( || ( media-plugins/gst-plugins-libav:1.0
-			media-plugins/gst-plugins-openh264:1.0 ) ) )
+	test? ( ${PYTHON_DEPS} )
 "
 # intltool-merge manually called in meson.build in 2.1.5; might be properly gone by 2.2.0 (MR !29)
 
@@ -73,12 +71,6 @@ pkg_setup() {
 }
 
 src_prepare() {
-	# Avoid gst-inspect calls that may trigger sandbox; instead assume the detection will succeed and add the needed test deps for that
-	if use gstreamer; then
-		sed -i -e 's:detect-h264-codec.sh:/bin/true:' tests/functional-tests/meson.build || die
-	else
-		sed -i -e 's:detect-h264-codec.sh:/bin/false:' tests/functional-tests/meson.build || die
-	fi
 	xdg_src_prepare
 	gnome2_environment_reset # sets gstreamer safety variables
 }

@@ -2,9 +2,9 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
-PYTHON_COMPAT=( python3_{4,5,6} )
+PYTHON_COMPAT=( python3_{4,5,6,7} )
 
-inherit gnome2 python-single-r1
+inherit gnome2 python-single-r1 meson
 
 DESCRIPTION="Music management for Gnome"
 HOMEPAGE="https://wiki.gnome.org/Apps/Music"
@@ -18,7 +18,7 @@ KEYWORDS="~amd64 ~x86"
 
 COMMON_DEPEND="
 	${PYTHON_DEPS}
-	>=app-misc/tracker-1.11.1[introspection(+)]
+	>=app-misc/tracker-1.11.1
 	>=dev-python/pygobject-3.21.1:3[cairo,${PYTHON_USEDEP}]
 	>=dev-libs/glib-2.28:2
 	>=dev-libs/gobject-introspection-1.35.9:=
@@ -30,8 +30,8 @@ COMMON_DEPEND="
 # https://bugzilla.gnome.org/show_bug.cgi?id=731613
 RDEPEND="${COMMON_DEPEND}
 	|| (
-		app-misc/tracker[gstreamer]
-		app-misc/tracker[ffmpeg]
+		app-misc/tracker-miners[gstreamer]
+		app-misc/tracker-miners[ffmpeg]
 	)
 	x11-libs/libnotify[introspection]
 	dev-python/dbus-python[${PYTHON_USEDEP}]
@@ -58,6 +58,6 @@ src_prepare() {
 }
 
 src_install() {
-	gnome2_src_install
+	meson_src_install
 	python_fix_shebang "${D}"usr/bin/gnome-music
 }
