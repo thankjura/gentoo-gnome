@@ -45,23 +45,17 @@ pkg_setup() {
 
 src_configure() {
 	local emesonargs=(
-		-D cairo=$(usex cairo true false)
-		-D doctool=true
-
+		$(meson_use cairo)
+		$(meson_use doctool)
+		-Dpython="${EPYTHON}"
 	)
-	#if ! has_version "x11-libs/cairo[glib]"; then
-		# Bug #391213: enable cairo-gobject support even if it's not installed
-		# We only PDEPEND on cairo to avoid circular dependencies
-	#	export CAIRO_LIBS="-lcairo -lcairo-gobject"
-	#	export CAIRO_CFLAGS="-I${EPREFIX}/usr/include/cairo"
-	#fi
 
 	meson_src_configure
 }
 
 src_install() {
 	meson_src_install
-
+	python_optimize
 	# Prevent collision with gobject-introspection-common
 	rm -v "${ED}"usr/share/aclocal/introspection.m4 \
 		"${ED}"usr/share/gobject-introspection-1.0/Makefile.introspection || die
