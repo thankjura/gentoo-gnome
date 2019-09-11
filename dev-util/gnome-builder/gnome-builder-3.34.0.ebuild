@@ -16,7 +16,7 @@ HOMEPAGE="https://wiki.gnome.org/Apps/Builder"
 LICENSE="GPL-3+ GPL-2+ LGPL-3+ LGPL-2+ MIT CC-BY-SA-3.0 CC0-1.0"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-IUSE="clang +devhelp doc +git gtk-doc sysprof test vala webkit glade"
+IUSE="clang +devhelp doc +git gtk-doc sysprof test webkit glade"
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
 # When bumping, pay attention to all the included plugins/*/meson.build (and other) build files and the requirements within.
@@ -37,16 +37,16 @@ LIBGIT_DEPS="
 "
 # TODO: Handle llvm slots via llvm.eclass; see plugins/clang/meson.build
 RDEPEND="
-	>=dev-libs/libdazzle-3.31.90[introspection,vala?]
+	>=dev-libs/libdazzle-3.31.90[introspection,vala]
 	>=dev-libs/glib-2.58.0:2
 	>=x11-libs/gtk+-3.24.0:3[introspection]
 	>=x11-libs/gtksourceview-4.0.0:4[introspection]
 	>=dev-libs/json-glib-1.2.0
-	>=dev-libs/jsonrpc-glib-3.30.1[vala?]
+	>=dev-libs/jsonrpc-glib-3.30.1[vala]
 	>=x11-libs/pango-1.38.0
 	>=dev-libs/libpeas-1.22.0[python,${PYTHON_USEDEP}]
 	>=dev-libs/template-glib-3.31.90[introspection,vala]
-	>=x11-libs/vte-0.40.2:2.91[vala?]
+	>=x11-libs/vte-0.40.2:2.91[vala]
 	>=dev-libs/libxml2-2.9.0
 	git? ( ${LIBGIT_DEPS} )
 	dev-libs/libpcre:3
@@ -58,18 +58,10 @@ RDEPEND="
 	clang? ( sys-devel/clang:= )
 	devhelp? ( >=dev-util/devhelp-3.25.1:= )
 	sysprof? ( >=dev-util/sysprof-3.30.2[gtk] )
-	vala? (
-		dev-lang/vala:=
-		$(vala_depend)
-	)
+	dev-lang/vala:=
+	$(vala_depend)
 	glade? ( dev-util/glade )
-" # We use subslot operator dep on vala in addition to $(vala_depend), because we have _runtime_
-#   usage in vala-pack plugin and need it rebuilt before removing an older vala it was built against
-# TODO: runtime ctags path finding..
-# FIXME: spellcheck plugin temporarily disabled due to requiring enchant-2
-#	>=app-text/gspell-1.2.0
-#	>=app-text/enchant:2
-
+"
 # desktop-file-utils required for tests, but we have it in deptree for xdg update-desktop-database anyway, so be explicit and unconditional
 # appstream-glib needed for validation with appstream-util with FEATURES=test
 DEPEND="${RDEPEND}
@@ -118,7 +110,7 @@ pkg_setup() {
 }
 
 src_prepare() {
-	use vala && vala_src_prepare
+	vala_src_prepare
 	xdg_src_prepare
 }
 
@@ -130,7 +122,6 @@ src_configure() {
 		-Dtcmalloc=false
 		-Dwith_channel=other
 		-Dplugin_editorconfig=true # needs libpcre
-		$(meson_use vala plugin_vala)
 		$(meson_use doc help)
 		$(meson_use gtk-doc docs)
 
