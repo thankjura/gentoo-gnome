@@ -68,7 +68,7 @@ src_configure() {
 		-Dintrospection=$(usex introspection true false)
 		-Dtests=false
 		-Dgtk_doc=$(usex gtk-doc true false)
-		-Dman=true
+		-Dman=false
 	)
 	meson_src_configure
 }
