@@ -17,6 +17,7 @@ REQUIRED_USE="?? ( elogind systemd )"
 RDEPEND="
 	>=dev-libs/glib-2.44:2
 	sys-auth/polkit
+	dev-libs/libdazzle
 	gtk? ( >=x11-libs/gtk+-3.22.0:3 )
 	elogind? ( >=sys-auth/elogind-239.3 )
 	systemd? ( >=sys-apps/systemd-222:0= )
