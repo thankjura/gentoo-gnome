@@ -26,7 +26,7 @@ COMMON_DEPEND="
 	>=dev-libs/atk-2[introspection]
 	>=app-crypt/gcr-3.7.5[introspection]
 	>=dev-libs/glib-2.45.3:2[dbus]
-	>=dev-libs/gjs-1.47.0
+	>=dev-libs/gjs-1.57.3
 	>=dev-libs/gobject-introspection-1.49.1:=
 	dev-libs/libical:=
 	>=x11-libs/gtk+-3.15.0:3[introspection]
@@ -35,7 +35,6 @@ COMMON_DEPEND="
 	>=gnome-base/gsettings-desktop-schemas-3.21.3
 	>=gnome-extra/evolution-data-server-3.33.2:=
 	>=media-libs/gstreamer-0.11.92:1.0
-	>=net-im/telepathy-logger-0.2.4[introspection]
 	>=net-libs/telepathy-glib-0.19[introspection]
 	>=sys-auth/polkit-0.100[introspection]
 	>=x11-libs/libXfixes-5.0
