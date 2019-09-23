@@ -10,7 +10,7 @@ HOMEPAGE="https://git.gnome.org/browse/mutter/"
 LICENSE="GPL-2+"
 SLOT="0/0"
 
-IUSE="+gles2 input_devices_wacom +introspection udev wayland"
+IUSE="+gles2 input_devices_wacom +introspection udev wayland eglstream"
 
 KEYWORDS="~alpha ~amd64 ~arm ~ia64 ~ppc ~ppc64 ~sparc ~x86"
 
@@ -27,7 +27,7 @@ COMMON_DEPEND="
 	>=media-libs/libcanberra-0.26[gtk3]
 	>=x11-libs/startup-notification-0.7
 	>=x11-libs/libXcomposite-0.2
-	>=gnome-base/gsettings-desktop-schemas-3.21.4[introspection?]
+	>=gnome-base/gsettings-desktop-schemas-3.33.0[introspection?]
 	gnome-base/gnome-desktop:3=
 	>sys-power/upower-0.99:=
 	>=dev-util/sysprof-3.33
@@ -53,6 +53,7 @@ COMMON_DEPEND="
 	media-libs/mesa[egl]
 
 	gles2? ( media-libs/mesa[gles2] )
+	eglstream? ( dev-libs/egl-wayland )
 	input_devices_wacom? ( >=dev-libs/libwacom-0.13 )
 	introspection? ( >=dev-libs/gobject-introspection-1.42:= )
 	udev? ( virtual/libgudev:= )
@@ -92,6 +93,8 @@ src_configure() {
 		$(meson_use wayland)
 		$(meson_use udev)
 		$(meson_use input_devices_wacom libwacom)
+		$(meson_use eglstream egl_device)
+		$(meson_use eglstream wayland_eglstream)
 	)
 
 	meson_src_configure
