@@ -116,9 +116,9 @@ DEPEND="${COMMON_DEPEND}
 
 PATCHES="
 	${FILESDIR}/fix-hight-cpu-usage.patch
-	${FILESDIR}/fix-input.patch
 "
 
+#${FILESDIR}/fix-input.patch
 src_configure() {
 	local emesonargs=(
 		-D enable-browser-plugin=$(usex nsplugin true false)

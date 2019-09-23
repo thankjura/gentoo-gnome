@@ -66,14 +66,6 @@ DEPEND="${COMMON_DEPEND}
 	virtual/pkgconfig
 	x11-base/xorg-proto
 "
-# perl for pod2man
-# docbook-xml-dtd is needed for user doc
-# Prevent dev-python/pylint dep, bug #482538
-
-PATCHES=(
-	"${FILESDIR}"/${PV}-control-plugins.patch # Do not force all plugins
-	"${FILESDIR}"/3.26-gst-inspect-sandbox.patch # Allow disabling calls to gst-inspect (sandbox issue)
-)
 
 pkg_setup() {
 	use python && python-single-r1_pkg_setup
@@ -89,19 +81,11 @@ src_configure() {
 	# for now still too, so no point in optionality based on that yet.
 	addwrite /dev/dri/renderD128
 	addwrite /dev/dri/card0
-	local plugins="apple-trailers,autoload-subtitles"
-	plugins+=",im-status,media-player-keys"
-	plugins+=",properties,recent,screensaver,screenshot"
-	plugins+=",skipto,variable-rate,vimeo,rotation"
-	use cdr && plugins+=",brasero-disc-recorder"
-	use lirc && plugins+=",lirc"
-	use nautilus && plugins+=",save-file"
-	use python && plugins+=",dbusservice,pythonconsole,opensubtitles"
 
 	local emesonargs=(
 		-Denable-easy-codec-installation=yes
 		-Denable-python=$(usex python yes no)
-		-Dwith-plugins=${plugins}
+		-Dwith-plugins=all
 		$(meson_use gtk-doc enable-gtk-doc)
 		-Denable-introspection=$(usex introspection yes no)
 	)

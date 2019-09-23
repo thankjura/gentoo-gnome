@@ -76,6 +76,9 @@ DEPEND="${COMMON_DEPEND}
 RDEPEND="${COMMON_DEPEND}
 	!x11-misc/expocity
 "
+
+PATCHES="${FILESDIR}/x11-services-initialization-fix.patch"
+
 meson_use_enable() {
 	usex "$1" "-D${2-$1}=enabled" "-D${2-$1}=disabled"
 }
