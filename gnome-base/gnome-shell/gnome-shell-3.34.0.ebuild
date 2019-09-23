@@ -114,7 +114,10 @@ DEPEND="${COMMON_DEPEND}
 	virtual/pkgconfig
 "
 
-PATCHES="${FILESDIR}/fix-hight-cpu-usage.patch"
+PATCHES="
+	${FILESDIR}/fix-hight-cpu-usage.patch
+	${FILESDIR}/fix-input.patch
+"
 
 src_configure() {
 	local emesonargs=(

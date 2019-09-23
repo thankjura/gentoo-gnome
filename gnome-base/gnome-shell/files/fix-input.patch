@@ -1,0 +1,37 @@
+--- b/js/misc/ibusManager.js
++++ a/js/misc/ibusManager.js
+@@ -61,7 +61,7 @@
+ 
+     _spawn(extraArgs = []) {
+         try {
++            let cmdLine = ['ibus-daemon', '--panel', 'disable', '--xim', ...extraArgs];
+-            let cmdLine = ['ibus-daemon', '--panel', 'disable', ...extraArgs];
+             Gio.Subprocess.new(cmdLine, Gio.SubprocessFlags.NONE);
+         } catch (e) {
+             log(`Failed to launch ibus-daemon: ${e.message}`);
+--- b/js/ui/windowManager.js
++++ a/js/ui/windowManager.js
+@@ -17,7 +17,6 @@
+ const EdgeDragAction = imports.ui.edgeDragAction;
+ const CloseDialog = imports.ui.closeDialog;
+ const SwitchMonitor = imports.ui.switchMonitor;
+-const IBusManager = imports.misc.ibusManager;
+ 
+ const { loadInterfaceXML } = imports.misc.fileUtils;
+ 
+@@ -1042,15 +1041,6 @@
+             }
+         });
+ 
+-        global.display.connect('x11-display-opened', () => {
+-            IBusManager.getIBusManager().restartDaemon(['--xim']);
+-            Shell.util_start_systemd_unit('gnome-session-x11-services.target', 'fail');
+-        });
+-        global.display.connect('x11-display-closing', () => {
+-            Shell.util_stop_systemd_unit('gnome-session-x11-services.target', 'fail');
+-            IBusManager.getIBusManager().restartDaemon();
+-        });
+-
+         Main.overview.connect('showing', () => {
+             for (let i = 0; i < this._dimmedWindows.length; i++)
+                 this._undimWindow(this._dimmedWindows[i]);
