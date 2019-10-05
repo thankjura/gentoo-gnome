@@ -28,6 +28,10 @@ DEPEND="${RDEPEND}
 	virtual/pkgconfig
 "
 
+PATCHES=(
+	${FILESDIR}/gnome-todo-eds-libecal-2.0.patch
+)
+
 src_configure() {
 	meson_src_configure \
 		-Dbackground-plugin=true \
