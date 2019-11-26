@@ -77,6 +77,11 @@ RDEPEND="${COMMON_DEPEND}
 	!x11-misc/expocity
 "
 
+PATCHES="
+	${FILESDIR}/918.patch
+	${FILESDIR}/fix-build.patch
+"
+
 meson_use_enable() {
 	usex "$1" "-D${2-$1}=enabled" "-D${2-$1}=disabled"
 }
