@@ -29,6 +29,7 @@ DEPEND="${RDEPEND}
 "
 
 src_prepare() {
+	eapply ${FILESDIR}/${P}-fix.patch
 	vala_src_prepare
 	default
 }

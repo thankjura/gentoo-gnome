@@ -1,0 +1,12 @@
+diff -ru dconf-0.34.0.old/client/meson.build dconf-0.34.0/client/meson.build
+--- dconf-0.34.0.old/client/meson.build	2019-09-10 01:56:47.000000000 +0300
++++ dconf-0.34.0/client/meson.build	2020-01-11 02:54:19.154723256 +0300
+@@ -28,7 +28,7 @@
+ 
+ libdconf_client_dep = declare_dependency(
+   dependencies: gio_dep,
+-  link_whole: libdconf_client,
++  link_with: libdconf_client,
+ )
+ 
+ libdconf = shared_library(
