@@ -21,7 +21,7 @@ COMMON_DEPEND="
 	gnome-base/gsettings-desktop-schemas
 	>=x11-libs/gtk+-3.22.27:3[X,introspection?]
 	seccomp? ( sys-libs/libseccomp )
-	>=x11-libs/pango-1.28.3
+	>=x11-libs/pango-1.44
 	selinux? ( >=sys-libs/libselinux-2.0 )
 	>=app-misc/tracker-2.0:=
 	x11-libs/libX11
