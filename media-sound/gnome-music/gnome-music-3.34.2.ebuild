@@ -19,7 +19,7 @@ KEYWORDS="~amd64 ~x86"
 COMMON_DEPEND="
 	${PYTHON_DEPS}
 	>=app-misc/tracker-1.11.1
-	>=dev-python/pygobject-3.21.1:3[cairo,${PYTHON_USEDEP}]
+	>=dev-python/pygobject-3.21.1:3[cairo]
 	>=dev-libs/glib-2.28:2
 	>=dev-libs/gobject-introspection-1.35.9:=
 	>=media-libs/grilo-0.3.2:0.3[introspection]
@@ -34,8 +34,11 @@ RDEPEND="${COMMON_DEPEND}
 		app-misc/tracker-miners[ffmpeg]
 	)
 	x11-libs/libnotify[introspection]
-	dev-python/dbus-python[${PYTHON_USEDEP}]
-	dev-python/requests[${PYTHON_USEDEP}]
+	$(python_gen_cond_dep '
+		>=dev-python/pygobject-3.21.1:3[${PYTHON_MULTI_USEDEP}]
+		dev-python/dbus-python[${PYTHON_MULTI_USEDEP}]
+		dev-python/requests[${PYTHON_MULTI_USEDEP}]
+	')
 	media-libs/gstreamer:1.0[introspection]
 	media-libs/gst-plugins-base:1.0[introspection]
 	media-plugins/gst-plugins-meta:1.0

@@ -3,7 +3,7 @@
 
 EAPI="6"
 GNOME2_LA_PUNT="yes" # plugins are dlopened
-PYTHON_COMPAT=( python3_{5,6,7} )
+PYTHON_COMPAT=( python3_{5,6,7,8} )
 VALA_MIN_API_VERSION="0.26"
 VALA_USE_DEPEND="vapigen"
 
@@ -37,9 +37,12 @@ COMMON_DEPEND="
 	introspection? ( >=dev-libs/gobject-introspection-0.9.3:= )
 	python? (
 		${PYTHON_DEPS}
-		dev-python/pycairo[${PYTHON_USEDEP}]
-		>=dev-python/pygobject-3:3[cairo,${PYTHON_USEDEP}]
-		dev-libs/libpeas[python,${PYTHON_USEDEP}] )
+		$(python_gen_cond_dep '
+		dev-python/pycairo[${PYTHON_MULTI_USEDEP}]
+		>=dev-python/pygobject-3:3[cairo,${PYTHON_MULTI_USEDEP}]
+		dev-libs/libpeas[python,${PYTHON_MULTI_USEDEP}] 
+		')
+	)
 	spell? ( >=app-text/gspell-0.2.5:0= )
 "
 RDEPEND="${COMMON_DEPEND}

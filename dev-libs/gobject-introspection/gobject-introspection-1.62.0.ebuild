@@ -23,8 +23,11 @@ KEYWORDS="~alpha amd64 arm arm64 ~hppa ~ia64 ~mips ppc ppc64 s390 ~sh ~sparc ~x8
 RDEPEND="
 	>=dev-libs/gobject-introspection-common-${PV}
 	>=dev-libs/glib-2.58.0:2
-	doctool? ( dev-python/mako[${PYTHON_USEDEP}]
-		dev-python/markdown[${PYTHON_USEDEP}] )
+	doctool? ( $(python_gen_cond_dep '
+					dev-python/mako[${PYTHON_MULTI_USEDEP}]
+					dev-python/markdown[${PYTHON_MULTI_USEDEP}]
+				')
+	)
 	virtual/libffi:=
 	virtual/pkgconfig
 	!<dev-lang/vala-0.20.0
