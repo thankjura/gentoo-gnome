@@ -1,10 +1,10 @@
 # Copyright 1999-2019 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
-PYTHON_COMPAT=( python{2_7,3_5,3_6} )
+EAPI=7
+PYTHON_COMPAT=( python3_{6,7,8} )
 
-inherit gnome2 python-single-r1 virtualx
+inherit gnome.org gnome2-utils python-single-r1 virtualx
 
 DESCRIPTION="D-Feet is a powerful D-Bus debugger"
 HOMEPAGE="https://wiki.gnome.org/Apps/DFeet"
@@ -24,7 +24,9 @@ COMMON_DEPEND="
 RDEPEND="
 	${COMMON_DEPEND}
 	>=dev-libs/glib-2.34:2
-	>=dev-python/pygobject-3.3.91:3[${PYTHON_USEDEP}]
+	$(python_gen_cond_dep '
+		>=dev-python/pygobject-3.3:91[${PYTHON_MULTI_USEDEP}]
+	')
 	>=sys-apps/dbus-1
 	X? ( x11-libs/libwnck:3[introspection] )
 "

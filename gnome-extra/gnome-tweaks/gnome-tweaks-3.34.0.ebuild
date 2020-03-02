@@ -3,7 +3,7 @@
 
 EAPI=6
 GNOME2_LA_PUNT="yes"
-PYTHON_COMPAT=( python3_{6,7} )
+PYTHON_COMPAT=( python3_{6,7,8} )
 
 inherit gnome2 python-r1 meson
 
@@ -28,7 +28,6 @@ COMMON_DEPEND="
 RDEPEND="${COMMON_DEPEND}
 	>=gnome-base/gnome-desktop-3.6.0.1:3=[introspection]
 	>=x11-libs/gtk+-3.12:3[introspection]
-	gui-libs/libhandy[introspection]
 
 	net-libs/libsoup:2.4[introspection]
 	x11-libs/libnotify[introspection]

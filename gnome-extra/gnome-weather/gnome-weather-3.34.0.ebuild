@@ -1,10 +1,10 @@
 # Copyright 1999-2018 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
-PYTHON_COMPAT=( python{2_7,3_4,3_5,3_6} )
+EAPI=7
+PYTHON_COMPAT=( python3_{6,7,8} )
 
-inherit gnome2 python-any-r1 meson
+inherit gnome.org gnome2-utils python-any-r1 meson
 
 DESCRIPTION="A weather application for GNOME"
 HOMEPAGE="https://wiki.gnome.org/Design/Apps/Weather"
