@@ -15,9 +15,7 @@ IUSE="+bluetooth browser-extension elogind +ibus +networkmanager nsplugin system
 REQUIRED_USE="${PYTHON_REQUIRED_USE}
 	?? ( elogind systemd )"
 
-# KEYWORDS="~alpha ~amd64 ~arm ~ia64 ~ppc ~ppc64 ~x86"
-# wait for fix https://gitlab.gnome.org/GNOME/gnome-shell/issues/1690
-KEYWORDS=""
+KEYWORDS="~alpha ~amd64 ~arm ~ia64 ~ppc ~ppc64 ~x86"
 
 COMMON_DEPEND="
 	>=dev-libs/libcroco-0.6.8:0.6
