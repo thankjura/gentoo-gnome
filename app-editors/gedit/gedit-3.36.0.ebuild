@@ -31,7 +31,7 @@ COMMON_DEPEND="
 
 	gnome-base/gsettings-desktop-schemas
 	gnome-base/gvfs
-	>=gui-libs/tepl-4.3:4
+	>=gui-libs/tepl-4.4:4
 
 	x11-libs/libX11
 
