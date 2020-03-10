@@ -9,7 +9,6 @@ inherit gnome2 virtualx
 
 DESCRIPTION="Clutter is a library for creating graphical user interfaces"
 HOMEPAGE="https://wiki.gnome.org/Projects/Clutter"
-SRC_URI+=" https://dev.gentoo.org/~leio/distfiles/${P}-patchset.tar.xz"
 
 LICENSE="LGPL-2.1+ FDL-1.1+"
 SLOT="1.0"
@@ -68,11 +67,6 @@ DEPEND="${RDEPEND}
 	X? ( x11-base/xorg-proto )
 	test? ( x11-libs/gdk-pixbuf )
 "
-
-PATCHES=(
-	# assorted patches from git at 2020-01-03; most importantly fixes wayland amdgpu picking (with working 10bit color) for various GNOME clutter games and gnome-maps
-	"${WORKDIR}/patches" # requires eautoreconf
-)
 
 src_prepare() {
 	# We only need conformance tests, the rest are useless for us

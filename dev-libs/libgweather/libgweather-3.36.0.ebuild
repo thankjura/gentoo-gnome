@@ -38,11 +38,6 @@ BDEPEND="
 	$(vala_depend)
 "
 
-PATCHES=(
-	"${FILESDIR}"/3.32.1-meson-tweaks.patch # Provide introspection optionality and don't build tests that aren't ran automatically
-	"${FILESDIR}"/${PV}-tests-Add-another-duplicate.patch
-)
-
 src_prepare() {
 	xdg_src_prepare
 	vala_src_prepare
