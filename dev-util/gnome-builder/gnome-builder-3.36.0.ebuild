@@ -76,6 +76,7 @@ DEPEND="${RDEPEND}
 	>=dev-util/meson-0.47.1
 	>=sys-devel/gettext-0.19.8
 	virtual/pkgconfig
+	sys-libs/libportal
 "
 
 DOC_CONTENTS='gnome-builder can use various other dependencies on runtime to provide
