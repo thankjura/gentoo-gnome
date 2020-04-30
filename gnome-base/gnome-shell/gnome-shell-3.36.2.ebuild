@@ -114,10 +114,6 @@ DEPEND="${COMMON_DEPEND}
 	virtual/pkgconfig
 "
 
-PATCHES="
-	${FILESDIR}/fix-extensions-icons.patch
-"
-
 src_prepare() {
 	xdg_src_prepare
 	# We want nsplugins in /usr/$(get_libdir)/nsbrowser/plugins not .../mozilla/plugins
