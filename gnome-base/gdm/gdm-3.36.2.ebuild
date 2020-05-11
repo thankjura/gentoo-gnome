@@ -1,8 +1,9 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
 GNOME2_LA_PUNT="yes"
+GNOME2_EAUTORECONF="yes"
 
 inherit eutils gnome2 pam readme.gentoo-r1 systemd udev user
 
@@ -20,9 +21,11 @@ LICENSE="
 
 SLOT="0"
 
-IUSE="accessibility audit branding fprint +introspection ipv6 plymouth selinux smartcard tcpd test wayland xinerama"
+IUSE="accessibility audit bluetooth-sound branding elogind fprint +introspection ipv6 plymouth selinux smartcard systemd tcpd test wayland xinerama"
+RESTRICT="!test? ( test )"
+REQUIRED_USE="^^ ( elogind systemd )"
 
-KEYWORDS="~alpha ~amd64 ~arm ~ia64 ~ppc ~ppc64 ~sh ~x86"
+KEYWORDS="amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 x86"
 
 # NOTE: x11-base/xorg-server dep is for X_SERVER_PATH etc, bug #295686
 # nspr used by smartcard extension
@@ -31,6 +34,7 @@ KEYWORDS="~alpha ~amd64 ~arm ~ia64 ~ppc ~ppc64 ~sh ~x86"
 COMMON_DEPEND="
 	app-text/iso-codes
 	>=dev-libs/glib-2.44:2
+	dev-libs/libgudev
 	>=x11-libs/gtk+-2.91.1:3
 	>=gnome-base/dconf-0.20
 	>=gnome-base/gnome-settings-daemon-3.1.4
@@ -49,9 +53,10 @@ COMMON_DEPEND="
 	>=x11-misc/xdg-utils-1.0.2-r3
 
 	sys-libs/pam
-	>=sys-apps/systemd-186:0=[pam]
+	elogind? ( >=sys-auth/elogind-239.3[pam] )
+	systemd? ( >=sys-apps/systemd-186:0=[pam] )
 
-	sys-auth/pambase[systemd]
+	sys-auth/pambase[elogind?,systemd?]
 
 	audit? ( sys-process/audit )
 	introspection? ( >=dev-libs/gobject-introspection-0.9.12:= )
@@ -86,11 +91,16 @@ DEPEND="${COMMON_DEPEND}
 	virtual/pkgconfig
 	x11-base/xorg-proto
 	test? ( >=dev-libs/check-0.9.4 )
-"
+	app-text/yelp-tools
+" # yelp-tools needed for eautoreconf to not lose help docs (m4_ifdeffed YELP_HELP_INIT call and setup)
 
 DOC_CONTENTS="
-	To make GDM start at boot, run:\n
+	To make GDM start at boot with systemd, run:\n
 	# systemctl enable gdm.service\n
+	\n
+	To make GDM start at boot with OpenRC, edit /etc/conf.d to have
+	DISPLAYMANAGER=\"gdm\" and enable the xdm service:\n
+	# rc-update add xdm
 	\n
 	For passwordless login to unlock your keyring, you need to install
 	sys-auth/pambase with USE=gnome-keyring and set an empty password
@@ -118,7 +128,21 @@ pkg_setup() {
 }
 
 src_prepare() {
-	eautoreconf
+	# ssh-agent handling must be done at xinitrc.d, bug #220603
+	eapply "${FILESDIR}/${PN}-2.32.0-xinitrc-ssh-agent.patch"
+
+	# Gentoo does not have a fingerprint-auth pam stack
+	eapply "${FILESDIR}/${PN}-3.8.4-fingerprint-auth.patch"
+
+	# Support pam_elogind.so in gdm-launch-environment.pam
+	eapply "${FILESDIR}/pam-elogind.patch"
+
+	# Wait 10 seconds for a DRM master with systemd. Workaround for gdm not waiting for CanGraphical=yes property on the seat. Bug #613222
+	eapply "${FILESDIR}/gdm-CanGraphical-wait.patch" # needs eautoreconf
+
+	# Show logo when branding is enabled
+	use branding && eapply "${FILESDIR}/${PN}-3.30.3-logo.patch"
+
 	gnome2_src_prepare
 }
 
@@ -137,29 +161,39 @@ src_configure() {
 	# so lets try always having it in VT1 and see if that is an issue for people before
 	# hacking up workarounds for the initial start case.
 	# ! use plymouth && myconf="${myconf} --with-initial-vt=7"
-
-	gnome2_src_configure \
-		--enable-gdm-xsession \
-		--enable-user-display-server \
-		--with-run-dir=/run/gdm \
-		--localstatedir="${EPREFIX}"/var \
-		--disable-static \
-		--with-xdmcp=yes \
-		--enable-authentication-scheme=pam \
-		--with-default-pam-config=exherbo \
-		--with-pam-mod-dir=$(getpam_mod_dir) \
-		--with-udevdir=$(get_udevdir) \
-		--with-at-spi-registryd-directory="${EPREFIX}"/usr/libexec \
-		--without-xevie \
-		--enable-systemd-journal \
-		--with-systemdsystemunitdir="$(systemd_get_systemunitdir)" \
-		$(use_with audit libaudit) \
-		$(use_enable ipv6) \
-		$(use_with plymouth) \
-		$(use_with selinux) \
-		$(use_with tcpd tcp-wrappers) \
-		$(use_enable wayland wayland-support) \
+	local myconf=(
+		--enable-gdm-xsession
+		--enable-user-display-server
+		--with-run-dir=/run/gdm
+		--localstatedir="${EPREFIX}"/var
+		--disable-static
+		--with-xdmcp=yes
+		--enable-authentication-scheme=pam
+		--with-default-pam-config=exherbo
+		--with-pam-mod-dir=$(getpam_mod_dir)
+		--with-udevdir=$(get_udevdir)
+		--with-at-spi-registryd-directory="${EPREFIX}"/usr/libexec
+		--without-xevie
+		$(use_enable systemd systemd-journal)
+		--with-systemdsystemunitdir="$(systemd_get_systemunitdir)"
+		$(use_with audit libaudit)
+		$(use_enable ipv6)
+		$(use_with plymouth)
+		$(use_with selinux)
+		$(use_with tcpd tcp-wrappers)
+		$(use_enable wayland wayland-support)
 		$(use_with xinerama)
+	)
+
+	if use elogind; then
+		myconf+=(
+			--with-initial-vt=7 # TODO: Revisit together with startDM.sh and other xinit talks; also ignores plymouth possibility
+			SYSTEMD_CFLAGS=`pkg-config --cflags "libelogind" 2>/dev/null`
+			SYSTEMD_LIBS=`pkg-config --libs "libelogind" 2>/dev/null`
+		)
+	fi
+
+	gnome2_src_configure "${myconf[@]}"
 }
 
 src_install() {
@@ -177,6 +211,13 @@ src_install() {
 	keepdir /var/lib/gdm
 	fowners gdm:gdm /var/lib/gdm
 
+	if ! use bluetooth-sound ; then
+		# Workaround https://gitlab.freedesktop.org/pulseaudio/pulseaudio/merge_requests/10
+		# bug #679526
+		insinto /var/lib/gdm/.config/pulse
+		doins "${FILESDIR}"/default.pa
+	fi
+
 	# install XDG_DATA_DIRS gdm changes
 	echo 'XDG_DATA_DIRS="/usr/share/gdm"' > 99xdg-gdm
 	doenvd 99xdg-gdm
@@ -188,6 +229,17 @@ src_install() {
 
 pkg_postinst() {
 	gnome2_pkg_postinst
+	local d ret
+
+	# bug #669146; gdm may crash if /var/lib/gdm subdirs are not owned by gdm:gdm
+	ret=0
+	ebegin "Fixing "${EROOT}"var/lib/gdm ownership"
+	chown --no-dereference gdm:gdm "${EROOT}var/lib/gdm" || ret=1
+	for d in "${EROOT}var/lib/gdm/"{.cache,.color,.config,.dbus,.local}; do
+		[[ ! -e "${d}" ]] || chown --no-dereference -R gdm:gdm "${d}" || ret=1
+	done
+	eend ${ret}
+
 	systemd_reenable gdm.service
 	readme.gentoo_print_elog
 }
