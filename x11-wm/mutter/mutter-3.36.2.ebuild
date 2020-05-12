@@ -55,6 +55,7 @@ DEPEND="
 	>=media-libs/libcanberra-0.26
 	media-libs/mesa[X(+),egl,gles2?]
 	>=media-libs/graphene-1.9.3
+	>=dev-util/sysprof-3.36
 	wayland? (
 		>=dev-libs/wayland-protocols-1.19
 		>=dev-libs/wayland-1.13.0
