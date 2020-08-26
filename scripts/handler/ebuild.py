@@ -13,7 +13,6 @@ async def create_ebuild(atom, version):
         makedirs(local_path)
     last_overlay_version, last_portage_version = get_last_local_version(atom)
     ebuild_name = "%s-%s.ebuild" % (pkg_name, version.vstring)
-    #print("create %s" % ebuild_name)
     if not last_overlay_version or last_portage_version > last_overlay_version:
         #print("copy ebuild from portage")
         filename = glob(path.join(PORTAGE_PREFIX, atom,

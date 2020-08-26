@@ -22,7 +22,6 @@ ATOMS = (
     'media-plugins/gst-plugins-modplug',
     'media-plugins/gst-plugins-voaacenc',
     'media-plugins/gst-plugins-assrender',
-    'media-plugins/gst-plugins-schroedinger',
     'media-plugins/gst-plugins-mpeg2enc',
 )
 
