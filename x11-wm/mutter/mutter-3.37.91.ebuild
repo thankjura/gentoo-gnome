@@ -10,7 +10,7 @@ HOMEPAGE="https://gitlab.gnome.org/GNOME/mutter/"
 LICENSE="GPL-2+"
 SLOT="0/6" # 0/libmutter_api_version - ONLY gnome-shell (or anything using mutter-clutter-<api_version>.pc) should use the subslot
 
-IUSE="elogind input_devices_wacom +introspection screencast +sysprof systemd test udev wayland"
+IUSE="elogind input_devices_wacom +introspection screencast +sysprof systemd test udev wayland eglstream"
 # native backend requires gles3 for hybrid graphics blitting support, udev and a logind provider
 REQUIRED_USE="
 	wayland? ( ^^ ( elogind systemd ) udev )
@@ -65,6 +65,7 @@ DEPEND="
 		elogind? ( sys-auth/elogind )
 		x11-base/xorg-server[wayland]
 	)
+	eglstream? ( dev-libs/egl-wayland )
 	udev? ( >=dev-libs/libgudev-232:=
 		>=virtual/libudev-232-r1:= )
 	x11-libs/libSM
@@ -105,8 +106,8 @@ src_configure() {
 		$(meson_use wayland)
 		$(meson_use wayland native_backend)
 		$(meson_use screencast remote_desktop)
-		-Degl_device=false # This should be dependent on wayland,video_drivers_nvidia, once eglstream support is there
-		-Dwayland_eglstream=false # requires packages egl-wayland for wayland-eglstream-protocols.pc
+		$(meson_use eglstream egl_device)
+		$(meson_use eglstream wayland_eglstream)
 		$(meson_use udev)
 		$(meson_use input_devices_wacom libwacom)
 		-Dpango_ft2=true

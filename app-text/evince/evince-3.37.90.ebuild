@@ -1,11 +1,9 @@
 # Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
-GNOME2_LA_PUNT="yes"
-GNOME2_EAUTORECONF="yes"
+EAPI=7
 
-inherit gnome2 systemd
+inherit systemd gnome.org gnome2-utils meson
 
 DESCRIPTION="Simple document viewer for GNOME"
 HOMEPAGE="https://wiki.gnome.org/Apps/Evince"
@@ -65,43 +63,34 @@ DEPEND="${COMMON_DEPEND}
 	virtual/pkgconfig
 	app-text/yelp-tools
 "
-# eautoreconf needs:
-#  app-text/yelp-tools
-
-PATCHES=(
-	"${FILESDIR}"/3.30.2-internal-synctex.patch # don't automagically link to synctex from texlive-core - always use internal copy of this small parser for now; requires eautoreconf
-)
-
-src_prepare() {
-	gnome2_src_prepare
-
-	# Do not depend on adwaita-icon-theme, bug #326855, #391859
-	# https://gitlab.freedesktop.org/xdg/default-icon-theme/issues/7
-	sed -e 's/adwaita-icon-theme >= $ADWAITA_ICON_THEME_REQUIRED//g' \
-		-i configure || die "sed failed"
-}
 
 src_configure() {
-	gnome2_src_configure \
-		--disable-static \
-		--enable-pdf \
-		--enable-comics \
-		--enable-thumbnailer \
-		--with-platform=gnome \
-		--enable-dbus \
-		$(use_enable djvu) \
-		$(use_enable dvi) \
-		$(use_enable gstreamer multimedia) \
-		$(use_enable gnome libgnome-desktop) \
-		$(use_with gnome-keyring keyring) \
-		$(use_enable introspection) \
-		$(use_enable nautilus) \
-		$(use_enable nsplugin browser-plugin) \
-		$(use_enable postscript ps) \
-		$(use_with spell gspell) \
-		$(use_enable t1lib) \
-		$(use_enable tiff) \
-		$(use_enable xps) \
-		BROWSER_PLUGIN_DIR="${EPREFIX}"/usr/$(get_libdir)/nsbrowser/plugins \
-		--with-systemduserunitdir="$(systemd_get_userunitdir)"
+	local emesonargs=(
+		-Dplatform="gnome"
+		-Dviewer=true
+		-Dpreviewer=true
+		-Dthumbnailer=true
+		$(meson_use nsplugin browser_plugin)
+		$(meson_use nautilus)
+		-Dcomics=enabled
+		$(meson_feature djvu)
+		$(meson_feature dvi)
+		-Dpdf=enabled
+		$(meson_feature postscript ps)
+		$(meson_feature tiff)
+		$(meson_feature xps)
+		-Dgtk_doc=false
+		-Duser_doc=false
+		$(meson_use introspection)
+		-Ddbus=true
+		$(meson_feature gnome-keyring keyring)
+		-Dgtk_unix_print=enabled
+		-Dthumbnail_cache=enabled
+		$(meson_feature gstreamer multimedia)
+		$(meson_feature spell gspell)
+		$(meson_feature t1lib)
+		-Dbrowser_plugin_dir="${EPREFIX}"/usr/$(get_libdir)/nsbrowser/plugins
+		-Dsystemduserunitdir="$(systemd_get_userunitdir)"
+	)
+	meson_src_configure
 }
