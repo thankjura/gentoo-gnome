@@ -29,6 +29,7 @@ DEPEND="${RDEPEND}
 	dev-util/itstool
 	>=sys-devel/gettext-0.19.8
 	virtual/pkgconfig
+	dev-libs/libgee:0.8
 "
 
 src_prepare() {
