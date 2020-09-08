@@ -43,10 +43,6 @@ BDEPEND="
 	)
 "
 
-PATCHES=(
-	"${FILESDIR}"/${P}-tests-test-break.c-Only-test-Thai-breaks-with-libtha.patch
-)
-
 src_prepare() {
 	xdg_src_prepare
 	gnome2_environment_reset

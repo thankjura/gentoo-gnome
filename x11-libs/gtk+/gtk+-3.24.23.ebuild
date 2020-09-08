@@ -183,7 +183,7 @@ multilib_src_configure() {
 
 multilib_src_test() {
 	"${EROOT}${GLIB_COMPILE_SCHEMAS}" --allow-any-name "${S}/gtk" || die
-	GSETTINGS_SCHEMA_DIR="${S}/gtk" virtx emake check
+	GSETTINGS_SCHEMA_DIR="${S}/gtk" virtx meson_src_test
 }
 
 multilib_src_install() {
