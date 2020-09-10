@@ -94,6 +94,8 @@ BDEPEND="
 		x11-base/xorg-server )
 "
 
+PATCHES="${FILESDIR}/1434.patch"
+
 src_configure() {
 	# TODO: Replicate debug vs release meson build type behaviour under our buildtype=plain
 	local emesonargs=(
