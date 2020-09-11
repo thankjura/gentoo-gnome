@@ -25,7 +25,7 @@ DEPEND="
 	>=dev-libs/libpeas-1.14.1[gtk]
 	>=x11-libs/gtk+-3.22.0:3[introspection?]
 	>=x11-libs/gtksourceview-4.0.2:4[introspection?]
-	gui-libs/tepl:5
+	>=gui-libs/tepl-5.0:5
 	x11-libs/libX11
 
 	spell? ( >=app-text/gspell-0.2.5:0= )
