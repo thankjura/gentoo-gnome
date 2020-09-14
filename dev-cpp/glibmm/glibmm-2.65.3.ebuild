@@ -20,9 +20,9 @@ RDEPEND="
 DEPEND="${RDEPEND}"
 BDEPEND="
 	virtual/pkgconfig
-	>=dev-cpp/mm-common-1.0.0
 	sys-devel/m4
 	dev-lang/perl
+	>=dev-cpp/mm-common-1.0.0
 	doc? (
 		app-doc/doxygen
 		dev-libs/libxslt
@@ -43,12 +43,12 @@ src_prepare() {
 
 multilib_src_configure() {
 	local emesonargs=(
-		-Dmaintainer-mode=true # Set false and drop mm-common dep once tarballs are made with meson/ninja
+		-Dmaintainer-mode=true
 		-Dwarnings=min
 		-Dbuild-documentation=$(usex doc true false)
 		-Ddebug-refcounting=$(usex debug true false)
 		-Dbuild-examples=false
-		-Dbuild-deprecated-api=false
+		-Dbuild-deprecated-api=true
 	)
 	meson_src_configure
 }
