@@ -4,7 +4,6 @@
 EAPI="7"
 VALA_USE_DEPEND="vapigen"
 VALA_MIN_API_VERSION="0.32"
-GNOME_TARBALL_SUFFIX="bz2"
 
 inherit gnome.org meson vala xdg
 
@@ -14,7 +13,7 @@ HOMEPAGE="https://wiki.gnome.org/Apps/Terminal/VTE"
 LICENSE="LGPL-3+ GPL-3+"
 SLOT="2.91"
 IUSE="+crypt debug gtk-doc +icu +introspection systemd +vala"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~amd64-linux ~x86-linux ~x64-solaris ~x86-solaris"
+KEYWORDS="~alpha amd64 arm arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 sparc x86 ~amd64-linux ~x86-linux ~x64-solaris ~x86-solaris"
 REQUIRED_USE="vala? ( introspection )"
 
 RDEPEND="
