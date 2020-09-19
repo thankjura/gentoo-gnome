@@ -4,7 +4,7 @@
 
 EAPI=6
 
-inherit gnome2
+inherit gnome2 meson
 
 DESCRIPTION="Games is a game manager application for GNOME."
 HOMEPAGE="https://wiki.gnome.org/Design/Playground/Games"
@@ -23,10 +23,7 @@ DEPEND="
 	dev-libs/libmanette
 "
 
-src_prepare() {
-	./autogen.sh
-	default
-}
+PATCHES="${FILESDIR}/424.patch"
 
 pkg_postinst() {
 	gnome2_icon_cache_update
