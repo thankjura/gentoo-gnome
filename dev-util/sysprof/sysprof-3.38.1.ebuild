@@ -9,8 +9,7 @@ DESCRIPTION="System-wide Linux Profiler"
 HOMEPAGE="http://sysprof.com/"
 
 LICENSE="GPL-3+ GPL-2+"
-API_VERSION="3"
-SLOT="0/${API_VERSION}"
+SLOT="4"
 KEYWORDS="~amd64 ~x86"
 IUSE="gtk +unwind"
 
@@ -22,7 +21,7 @@ RDEPEND="
 	)
 	>=sys-auth/polkit-0.114
 	unwind? ( sys-libs/libunwind:= )
-	>=dev-util/sysprof-capture-${PV}:${API_VERSION}
+	>=dev-util/sysprof-capture-${PV}:${SLOT}
 "
 DEPEND="${RDEPEND}"
 BDEPEND="
@@ -40,7 +39,7 @@ src_prepare() {
 	sed -i -e '/install/d' src/libsysprof-capture/meson.build || die
 	sed -i -e 's/pkgconfig\.generate/subdir_done()\npkgconfig\.generate/' src/libsysprof-capture/meson.build || die
 	# We want to ship org.gnome.Sysprof3.Profiler.xml in sysprof-capture for the benefit of x11-wm/mutter
-	sed -i -e "s|if get_option('libsysprof')|if false|g" src/meson.build || die
+	# sed -i -e "s|if get_option('libsysprof')|if false|g" src/meson.build || die
 }
 
 src_configure() {
