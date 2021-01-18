@@ -10,7 +10,7 @@ HOMEPAGE="https://gitlab.gnome.org/GNOME/mutter/"
 LICENSE="GPL-2+"
 SLOT="0/7" # 0/libmutter_api_version - ONLY gnome-shell (or anything using mutter-clutter-<api_version>.pc) should use the subslot
 
-IUSE="elogind input_devices_wacom +introspection screencast +sysprof systemd test udev wayland eglstream"
+IUSE="elogind input_devices_wacom +introspection screencast sysprof systemd test udev wayland eglstream"
 # native backend requires gles3 for hybrid graphics blitting support, udev and a logind provider
 REQUIRED_USE="
 	wayland? ( ^^ ( elogind systemd ) udev )
@@ -30,7 +30,7 @@ DEPEND="
 	>=x11-libs/pango-1.30[introspection?]
 	>=dev-libs/fribidi-1.0.0
 	>=x11-libs/cairo-1.14[X]
-	>=gnome-base/gsettings-desktop-schemas-3.33.0[introspection?]
+	>=gnome-base/gsettings-desktop-schemas-3.37.2[introspection?]
 	>=dev-libs/glib-2.61.1:2
 	gnome-base/gnome-settings-daemon
 	>=dev-libs/json-glib-0.12.0[introspection?]
@@ -55,11 +55,12 @@ DEPEND="
 	>=media-libs/libcanberra-0.26
 	sys-apps/dbus
 	media-libs/mesa[X(+),egl]
+	sysprof? ( >=dev-util/sysprof-capture-3.38.0:4 )
 	wayland? (
 		>=dev-libs/wayland-protocols-1.19
-		>=dev-libs/wayland-1.13.0
+		>=dev-libs/wayland-1.18.0
 		x11-libs/libdrm:=
-		>=media-libs/mesa-10.3[egl,gbm,wayland,gles2]
+		>=media-libs/mesa-17.3[egl,gbm,wayland,gles2]
 		>=dev-libs/libinput-1.7
 		systemd? ( sys-apps/systemd )
 		elogind? ( sys-auth/elogind )
@@ -79,15 +80,11 @@ RDEPEND="${DEPEND}
 "
 DEPEND="${DEPEND}
 	x11-base/xorg-proto
-	sysprof? (
-		>=dev-util/sysprof-common-3.38.0
-		>=dev-util/sysprof-capture-3.38.0:4
-	)
+	sysprof? ( >=dev-util/sysprof-common-3.38.0 )
 "
 # wayland bdepend for wayland-scanner, xorg-server for cvt utility
 BDEPEND="
 	dev-libs/wayland
-	>=dev-util/meson-0.50.0
 	dev-util/gdbus-codegen
 	dev-util/glib-utils
 	>=sys-devel/gettext-0.19.8
