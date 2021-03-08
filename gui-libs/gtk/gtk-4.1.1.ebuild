@@ -10,7 +10,7 @@ HOMEPAGE="https://www.gtk.org/"
 
 LICENSE="LGPL-2+"
 SLOT="4"
-IUSE="broadway colord cups cloudprint cloudproviders examples ffmpeg +gstreamer gtk-doc +introspection test +demos vim-syntax wayland +X xinerama tracker vulkan profiler"
+IUSE="broadway colord cups cloudprint cloudproviders examples ffmpeg +gstreamer gtk-doc +introspection test +demos vim-syntax wayland +X xinerama tracker +vulkan profiler"
 REQUIRED_USE="
 	|| ( wayland X )
 	xinerama? ( X )
@@ -33,7 +33,7 @@ BDEPEND="
 # gstreamer-player-1.0.pc => media-libs/gst-plugins-bad
 DEPEND="
 	>=dev-libs/glib-2.63.1:2[${MULTILIB_USEDEP}]
-	>=x11-libs/pango-1.45.0[introspection?,${MULTILIB_USEDEP}]
+	>=x11-libs/pango-1.47[introspection?,${MULTILIB_USEDEP}]
 	>=dev-libs/fribidi-0.19.7[${MULTILIB_USEDEP}]
 	>=dev-libs/atk-2.15.1[introspection?,${MULTILIB_USEDEP}]
 	>=x11-libs/cairo-1.14[glib,svg,X?,${MULTILIB_USEDEP}]
