@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import time
 import curses
+import os
 from datetime import datetime
-from time import sleep
 from os import path
 from curses_log import CursesLog
-from handler.version import LOCAL_PREFIX, get_last_ftp_version, get_last_local_version
+from handler.version import LOCAL_PREFIX, get_last_ftp_version, get_last_local_version, Version
 from handler.ebuild import create_ebuild
 from handler import custom
 
@@ -21,7 +20,7 @@ async def check_atom_process(atom, slot):
     pkg_name = atom.split("/")[1]
     last_local_version = sorted(get_last_local_version(atom))[-1]
     log.add_str(atom, "{}:{} -> ".format(atom, slot).ljust(50))
-    log.add_str(atom, "local: {} ".format(last_local_version.vstring).ljust(18), append=True)
+    log.add_str(atom, "local: {} ".format(last_local_version.ebuild_version).ljust(18), append=True)
 
     custom_handler = False
     only_local_check = False
@@ -33,11 +32,11 @@ async def check_atom_process(atom, slot):
     if only_local_check:
         last_ftp_version = last_local_version
     else:
-        last_ftp_version = await get_last_ftp_version(pkg_name, slot)
+        last_ftp_version: Version = await get_last_ftp_version(pkg_name, slot)
         if last_ftp_version > last_local_version:
-            log.add_str(atom, "ftp : {} ".format(last_ftp_version.vstring).ljust(20), True, curses.color_pair(2))
+            log.add_str(atom, "ftp : {} ".format(last_ftp_version).ljust(20), True, curses.color_pair(2))
         else:
-            log.add_str(atom, "ftp : {} ".format(last_ftp_version.vstring), True, curses.color_pair(1))
+            log.add_str(atom, "ftp : {} ".format(last_ftp_version), True, curses.color_pair(1))
 
         if last_ftp_version > last_local_version:
             returncode = await create_ebuild(atom, last_ftp_version)
@@ -65,7 +64,7 @@ async def bound_check(sem, atom):
 
 
 async def main(conf):
-    sem = asyncio.Semaphore(3)
+    sem = asyncio.Semaphore(5)
     tasks = []
     for atom in conf:
         task = asyncio.ensure_future(bound_check(sem, atom))
@@ -81,4 +80,5 @@ if __name__ == '__main__':
         loop.run_until_complete(main(config))
 
     log.add_str("finish", "Finish at {} sec".format((datetime.now() - start)), False, curses.color_pair(1))
+    input("\nPress any key")
     log.exit()

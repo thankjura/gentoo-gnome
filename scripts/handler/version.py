@@ -1,41 +1,122 @@
-import aioftp
 from os import path, listdir
-from distutils.version import LooseVersion as Version
 from re import compile
-from pkg_resources import parse_version
+from itertools import zip_longest
+from typing import Optional
 
-version_regexp = compile("-(\d+(\.\d+)*(-r\d)?)")
-host = 'ftp.gnome.org'
+import aiohttp
+from .parser import GParser
+
+version_regexp = compile("-(\d+(\.\d+)*(\.rc|\.alpha|\.beta)?)")
+PREFIX = 'https://download.gnome.org/sources/'
 
 PORTAGE_PREFIX = '/usr/portage/'
-FTP_PREFIX = '/pub/gnome/sources/'
 LOCAL_PREFIX = path.dirname(path.dirname(__file__))
 
 
-async def get_last_ftp_version(atom, slot=None):
-    async with aioftp.ClientSession(host) as client:
+class Version:
+    def __init__(self, vstring):
+        self.__vstring = vstring
+        self.__parts = vstring.split(".")
+
+    @property
+    def parts(self) -> list:
+        return self.__parts
+
+    def __gt__(self, other: 'Version'):
+        for l, r in zip_longest(self.__parts, other.parts):
+            if not l:
+                return True
+            if not r:
+                return False
+            if l == r:
+                continue
+
+            if l.isdigit() and r.isdigit():
+                return int(l) > int(r)
+
+            if l.isdigit():
+                return True
+            elif r.isdigit():
+                return False
+
+            if l == "rc":
+                return True
+
+            if r == "beta":
+                return True
+
+            if l == "beta":
+                return True
+
+            return False
+
+    def __ge__(self, other: 'Version'):
+        if self.__vstring == other.__vstring:
+            return True
+
+        return self.__gt__(other)
+
+    def __str__(self):
+        return self.__vstring
+
+    def __eq__(self, ver):
+        return self.__vstring == ver.__vstring
+
+    @property
+    def ebuild_version(self):
+        return self.__vstring.replace(".rc", "_rc").replace(".alpha", "_alpha").replace(".beta", "_beta")
+
+
+def is_float(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
+async def get_last_ftp_version(atom, slot=None) -> Optional[Version]:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(PREFIX + atom + "/") as resp:
+            if resp.status < 200 or resp.status >= 400:
+                return None
+            html = await resp.text()
+            parser = GParser()
+            parser.feed(html)
+
         if slot:
             slot = Version(slot)
-        await client.change_directory(FTP_PREFIX + atom)
-        slots = []
-        for p, info in (await client.list()):
-            if info.get('type') == 'dir':
-                slots.append(Version(str(p)))
-        available_slots = sorted(slots)
+        available_slots = []
+        for link in parser.links:
+            if not is_float(link):
+                continue
+            available_slots.append(Version(link))
+        available_slots.sort()
         if slot:
             if slot in available_slots:
-                await client.change_directory(slot.vstring)
+                atom_url = PREFIX + atom + "/" + str(slot) + "/"
             else:
-                last_slot = [s for s in available_slots if s <= slot][-1]
-                await client.change_directory(last_slot.vstring)
+                # print("\n\n\n\n")
+                # print([x.ebuild_version for x in available_slots])
+                # print(slot.ebuild_version)
+                # print([x.ebuild_version for x in [s for s in available_slots if slot >= s]])
+                last_slot = [s for s in available_slots if slot >= s][-1]
+                atom_url = PREFIX + atom + "/" + str(last_slot) + "/"
         else:
             last_slot = available_slots[-1]
-            await client.change_directory(last_slot.vstring)
+            atom_url = PREFIX + atom + "/" + str(last_slot) + "/"
+
+        async with session.get(atom_url) as resp:
+            if resp.status < 200 or resp.status >= 400:
+                return None
+            html = await resp.text()
+            parser.feed(html)
         versions = []
-        for p, info in (await client.list()):
-            if str(p).endswith('tar.xz'):
-                versions.append(Version(version_regexp.findall(str(p))[0][0]))
-        return sorted(versions)[-1]
+        for al in parser.links:
+            if str(al).endswith('tar.xz'):
+                versions.append(Version(version_regexp.findall(str(al))[0][0]))
+        versions.sort()
+        return versions[-1]
 
 
 def get_last_local_version(atom):
@@ -45,12 +126,14 @@ def get_last_local_version(atom):
             return Version('0')
         for f in listdir(path.join(prefix, atom)):
             if f.endswith(".ebuild"):
-                versions.append(Version(parse_version(version_regexp.findall(f)[0][0]).base_version))
+                versions.append(Version(version_regexp.findall(f)[0][0]))
 
         if versions:
-            return sorted(versions)[-1]
+            versions.sort()
+            return versions[-1]
         return Version('0')
 
     last_portage_version = get_last_version(PORTAGE_PREFIX)
     last_overlay_version = get_last_version(path.dirname(LOCAL_PREFIX))
     return last_overlay_version, last_portage_version
+
