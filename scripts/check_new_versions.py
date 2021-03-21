@@ -1,9 +1,7 @@
-#! env python3
-# -*- coding: utf-8 -*-
+#!/bin/env python3
 
 import asyncio
 import curses
-import os
 from datetime import datetime
 from os import path
 from curses_log import CursesLog
@@ -64,7 +62,7 @@ async def bound_check(sem, atom):
 
 
 async def main(conf):
-    sem = asyncio.Semaphore(5)
+    sem = asyncio.Semaphore(8)
     tasks = []
     for atom in conf:
         task = asyncio.ensure_future(bound_check(sem, atom))

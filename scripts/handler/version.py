@@ -6,7 +6,8 @@ from typing import Optional
 import aiohttp
 from .parser import GParser
 
-version_regexp = compile("-(\d+(\.\d+)*(\.rc|\.alpha|\.beta)?)")
+ftp_version_regexp = compile("-(\d+(\.\d+)*(\.rc|\.alpha|\.beta)?)")
+ebuild_version_regexp = compile("-(\d+(\.\d+)*(_rc|_alpha|_beta)?)")
 PREFIX = 'https://download.gnome.org/sources/'
 
 PORTAGE_PREFIX = '/usr/portage/'
@@ -15,8 +16,8 @@ LOCAL_PREFIX = path.dirname(path.dirname(__file__))
 
 class Version:
     def __init__(self, vstring):
-        self.__vstring = vstring
-        self.__parts = vstring.split(".")
+        self.__vstring = vstring.replace("_", ".")
+        self.__parts = self.__vstring.split(".")
 
     @property
     def parts(self) -> list:
@@ -114,7 +115,7 @@ async def get_last_ftp_version(atom, slot=None) -> Optional[Version]:
         versions = []
         for al in parser.links:
             if str(al).endswith('tar.xz'):
-                versions.append(Version(version_regexp.findall(str(al))[0][0]))
+                versions.append(Version(ftp_version_regexp.findall(str(al))[0][0]))
         versions.sort()
         return versions[-1]
 
@@ -126,7 +127,7 @@ def get_last_local_version(atom):
             return Version('0')
         for f in listdir(path.join(prefix, atom)):
             if f.endswith(".ebuild"):
-                versions.append(Version(version_regexp.findall(f)[0][0]))
+                versions.append(Version(ebuild_version_regexp.findall(f)[0][0]))
 
         if versions:
             versions.sort()
