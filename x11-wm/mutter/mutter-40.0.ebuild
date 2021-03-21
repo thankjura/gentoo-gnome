@@ -65,7 +65,7 @@ DEPEND="
 		elogind? ( sys-auth/elogind )
 		x11-base/xorg-server[wayland]
 	)
-	eglstream? ( dev-libs/egl-wayland )
+	eglstream? ( gui-libs/egl-wayland )
 	udev? ( >=dev-libs/libgudev-232:=
 		>=virtual/libudev-232-r1:= )
 	x11-libs/libSM
