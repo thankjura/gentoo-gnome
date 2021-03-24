@@ -3,12 +3,10 @@
 
 EAPI=7
 
-inherit git-r3 meson virtualx
+inherit gnome-src meson virtualx
 
 DESCRIPTION="GtkSourceView-based text editors and IDE helper library"
 HOMEPAGE="https://wiki.gnome.org/Projects/Tepl"
-
-EGIT_REPO_URI="https://gitlab.gnome.org/GNOME/tepl.git"
 
 LICENSE="LGPL-2.1+"
 SLOT="6"
