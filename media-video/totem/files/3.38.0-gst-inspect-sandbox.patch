@@ -1,0 +1,26 @@
+diff -ru totem-3.38.0.old/meson_options.txt totem-3.38.0/meson_options.txt
+--- totem-3.38.0.old/meson_options.txt	2020-09-10 12:42:05.776370000 +0300
++++ totem-3.38.0/meson_options.txt	2021-03-28 21:47:52.505635312 +0300
+@@ -3,3 +3,4 @@
+ option('with-plugins', type: 'combo', choices: ['all', 'none', 'auto'], value: 'auto', description: 'Which Totem plugins to compile (default: auto; "all", "none" and "auto" are valid)')
+ option('enable-gtk-doc', type: 'boolean', value: false, description: 'use gtk-doc to build documentation')
+ option('profile', type: 'combo', choices: ['default', 'development'], value: 'default', description: 'Build profiles')
++option('gst-inspect', type: 'boolean', value: true, description: 'build-time test of available gstreamer plugins')
+diff -ru totem-3.38.0.old/src/backend/meson.build totem-3.38.0/src/backend/meson.build
+--- totem-3.38.0.old/src/backend/meson.build	2020-09-10 12:42:05.811370000 +0300
++++ totem-3.38.0/src/backend/meson.build	2021-03-28 21:49:28.541073957 +0300
+@@ -1,5 +1,6 @@
+ backend_inc = include_directories('.')
+ 
++if get_option('gst-inspect')
+ gst_inspect = find_program(
+   'gst-inspect-1.0',
+   join_paths(gst_dep.get_pkgconfig_variable('toolsdir'), 'gst-inspect-1.0'),
+@@ -31,6 +32,7 @@
+   assert(r.returncode() == 0,
+          'Cannot find required GStreamer-1.0 plugin "' + plugin + '". It should be part of gst-plugins-good. Please install it.')
+ endforeach
++endif
+ 
+ sources = files(
+   'bacon-time-label.c',

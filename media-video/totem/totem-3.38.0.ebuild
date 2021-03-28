@@ -69,8 +69,10 @@ BDEPEND="
 	virtual/pkgconfig
 	x11-base/xorg-proto
 "
-# perl for pod2man
-# Prevent dev-python/pylint dep, bug #482538
+
+PATCHES=(
+	"${FILESDIR}/3.38.0-gst-inspect-sandbox.patch"
+)
 
 pkg_setup() {
 	use python && python-single-r1_pkg_setup
@@ -83,8 +85,6 @@ src_prepare() {
 }
 
 src_configure() {
-	addwrite /dev/dri/card0
-	addwrite /dev/dri/renderD128
 	local emesonargs=(
 		-Denable-easy-codec-installation=yes
 		-Denable-python=$(usex python yes no)
