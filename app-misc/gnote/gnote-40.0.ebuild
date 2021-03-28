@@ -4,8 +4,7 @@
 EAPI=6
 GNOME2_LA_PUNT="yes"
 
-inherit gnome2-utils readme.gentoo-r1 gnome_src
-
+inherit gnome-src gnome2-utils readme.gentoo-r1
 DESCRIPTION="Desktop note-taking application"
 HOMEPAGE="https://wiki.gnome.org/Apps/Gnote"
 

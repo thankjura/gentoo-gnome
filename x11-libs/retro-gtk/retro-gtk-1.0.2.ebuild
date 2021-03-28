@@ -4,8 +4,7 @@
 
 EAPI=6
 
-inherit gnome2 meson
-
+inherit gnome-src gnome2-utils meson xdg
 DESCRIPTION="Toolkit to write Gtk+ 3 based libretro frontends"
 HOMEPAGE="https://git.gnome.org/browse/retro-gtk/"
 

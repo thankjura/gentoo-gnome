@@ -45,7 +45,7 @@ async def create_ebuild(atom, version: Version):
 
             deps.append("gnome-src")
 
-            source += "inherit " + " ".join(set(deps))
+            source += "inherit " + " ".join(set(deps)) + "\n"
         f.write(source)
 
     out = await create_subprocess_shell("cd %s && sudo ebuild %s digest" % (local_path, ebuild_name),
