@@ -64,7 +64,7 @@ src_configure() {
 		-Ddeprecation_flags=false
 		-Dsession_selector=true # gnome-custom-session
 		$(meson_use systemd)
-		-Dsystemd_session=$(usex systemd default disable)
+		-Dsystemd_session=$(usex systemd enable disable)
 		$(meson_use systemd systemd_journal)
 		$(meson_use doc docbook)
 		-Dconsolekit=false
