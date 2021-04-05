@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit xdg gnome2-utils gnome-src virtualx meson
+inherit xdg gnome2-utils gnome.org virtualx meson
 DESCRIPTION="GNOME webbrowser based on Webkit"
 HOMEPAGE="https://wiki.gnome.org/Apps/Web"
 

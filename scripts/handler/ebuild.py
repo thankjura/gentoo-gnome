@@ -22,32 +22,6 @@ async def create_ebuild(atom, version: Version):
         filename = glob(path.join(local_path, "%s-%s*.ebuild" % (pkg_name, last_overlay_version.ebuild_version)))[-1]
         shutil.move(filename, path.join(local_path, ebuild_name))
 
-    lines = []
-    with Path(local_path, ebuild_name).open("r") as f:
-        for line in f:
-            lines.append(line)
-
-    with Path(local_path, ebuild_name).open("w") as f:
-        source = ""
-        for line in lines:
-            if not line.startswith("inherit ") or "gnome-src" in line:
-                source += line
-                continue
-            deps = [d.strip() for d in line.split(" ") if d.strip()]
-            deps.remove("inherit")
-            if "gnome.org" in deps:
-                deps.remove("gnome.org")
-
-            if "gnome2" in deps:
-                deps.remove("gnome2")
-                deps.append("gnome2-utils")
-                deps.append("xdg")
-
-            deps.append("gnome-src")
-
-            source += "inherit " + " ".join(set(deps)) + "\n"
-        f.write(source)
-
     out = await create_subprocess_shell("cd %s && sudo ebuild %s digest" % (local_path, ebuild_name),
                                         stdin=PIPE, stdout=PIPE, stderr=STDOUT)
     return await out.wait()

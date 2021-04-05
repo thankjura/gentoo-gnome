@@ -1,13 +1,14 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
-inherit xdg gnome2-utils gnome-src virtualx meson
+inherit gnome.org gnome2-utils meson virtualx xdg
+
 DESCRIPTION="GNOME 3 compositing window manager based on Clutter"
 HOMEPAGE="https://gitlab.gnome.org/GNOME/mutter/"
 
 LICENSE="GPL-2+"
-SLOT="0/7" # 0/libmutter_api_version - ONLY gnome-shell (or anything using mutter-clutter-<api_version>.pc) should use the subslot
+SLOT="0/8" # 0/libmutter_api_version - ONLY gnome-shell (or anything using mutter-clutter-<api_version>.pc) should use the subslot
 
 IUSE="elogind input_devices_wacom +introspection screencast sysprof systemd test udev wayland eglstream"
 # native backend requires gles3 for hybrid graphics blitting support, udev and a logind provider
@@ -23,14 +24,14 @@ KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~sparc ~x86"
 # v3.32.2 has many excessive or unused *_req variables declared, thus currently the dep order ignores those and goes via dependency() call order
 DEPEND="
 	x11-libs/libX11
-	>=media-libs/graphene-1.9.3[introspection?]
+	>=media-libs/graphene-1.10.2[introspection?]
 	>=x11-libs/gtk+-3.19.8:3[X,introspection?]
 	x11-libs/gdk-pixbuf:2
-	>=x11-libs/pango-1.30[introspection?]
+	>=x11-libs/pango-1.46[introspection?]
 	>=dev-libs/fribidi-1.0.0
 	>=x11-libs/cairo-1.14[X]
-	>=gnome-base/gsettings-desktop-schemas-3.37.2[introspection?]
-	>=dev-libs/glib-2.61.1:2
+	>=gnome-base/gsettings-desktop-schemas-40.0[introspection?]
+	>=dev-libs/glib-2.67.3:2
 	gnome-base/gnome-settings-daemon
 	>=dev-libs/json-glib-0.12.0[introspection?]
 	gnome-base/gnome-desktop:3=
@@ -60,18 +61,17 @@ DEPEND="
 		>=dev-libs/wayland-1.18.0
 		x11-libs/libdrm:=
 		>=media-libs/mesa-17.3[egl,gbm,wayland,gles2]
-		>=dev-libs/libinput-1.7
+		>=dev-libs/libinput-1.15.0
 		systemd? ( sys-apps/systemd )
 		elogind? ( sys-auth/elogind )
 		x11-base/xorg-server[wayland]
 	)
-	eglstream? ( gui-libs/egl-wayland )
 	udev? ( >=dev-libs/libgudev-232:=
 		>=virtual/libudev-232-r1:= )
 	x11-libs/libSM
 	input_devices_wacom? ( >=dev-libs/libwacom-0.13 )
 	>=x11-libs/startup-notification-0.7
-	screencast? ( >=media-video/pipewire-0.3.0:0/0.3 )
+	screencast? ( >=media-video/pipewire-0.3.21:0/0.3 )
 	introspection? ( >=dev-libs/gobject-introspection-1.54:= )
 "
 RDEPEND="${DEPEND}
@@ -94,7 +94,8 @@ BDEPEND="
 "
 
 PATCHES=(
-	"${FILESDIR}/1441.patch"
+	"${FILESDIR}"/${P}-Disable-anonymous-file-test.patch
+	"${FILESDIR}"/1441.patch
 )
 
 src_configure() {
@@ -119,6 +120,7 @@ src_configure() {
 		$(meson_use introspection)
 		$(meson_use test cogl_tests)
 		$(meson_use wayland core_tests) # core tests require wayland; overall -Dtests option is honored on top, so no extra conditional needed
+		-Dnative_tests=false
 		$(meson_use test clutter_tests)
 		$(meson_use test tests)
 		$(meson_use sysprof profiler)

@@ -5,7 +5,7 @@ EAPI=7
 VALA_USE_DEPEND="vapigen"
 PYTHON_COMPAT=( python3_{7..9} )
 
-inherit gnome-src vala python-any-r1 gnome2-utils meson xdg
+inherit gnome.org vala python-any-r1 gnome2-utils meson xdg
 
 DESCRIPTION="Libraries for cryptographic UIs and accessing PKCS#11 modules"
 HOMEPAGE="https://gitlab.gnome.org/GNOME/gcr"
