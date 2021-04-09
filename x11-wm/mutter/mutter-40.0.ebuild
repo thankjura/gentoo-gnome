@@ -56,6 +56,7 @@ DEPEND="
 	sys-apps/dbus
 	media-libs/mesa[X(+),egl]
 	sysprof? ( >=dev-util/sysprof-capture-3.38.0:4 )
+	eglstream? ( gui-libs/egl-wayland )
 	wayland? (
 		>=dev-libs/wayland-protocols-1.19
 		>=dev-libs/wayland-1.18.0
