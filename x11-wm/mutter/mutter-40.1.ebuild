@@ -95,7 +95,7 @@ BDEPEND="
 "
 
 PATCHES=(
-	"${FILESDIR}"/${P}-Disable-anonymous-file-test.patch
+	"${FILESDIR}"/${PN}-40.0-Disable-anonymous-file-test.patch
 	"${FILESDIR}"/1441.patch
 )
 
