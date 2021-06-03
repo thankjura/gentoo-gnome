@@ -6,6 +6,7 @@ inherit gnome.org gnome2-utils meson virtualx xdg
 
 DESCRIPTION="GNOME 3 compositing window manager based on Clutter"
 HOMEPAGE="https://gitlab.gnome.org/GNOME/mutter/"
+SRC_URI+=" https://dev.gentoo.org/~leio/distfiles/${PF}-patchset.tar.xz"
 
 LICENSE="GPL-2+"
 SLOT="0/8" # 0/libmutter_api_version - ONLY gnome-shell (or anything using mutter-clutter-<api_version>.pc) should use the subslot
@@ -95,6 +96,7 @@ BDEPEND="
 "
 
 PATCHES=(
+	"${WORKDIR}"/patches
 	"${FILESDIR}"/${PN}-40.0-Disable-anonymous-file-test.patch
 	"${FILESDIR}"/1441.patch
 )
@@ -114,6 +116,7 @@ src_configure() {
 		$(meson_use eglstream egl_device)
 		$(meson_use eglstream wayland_eglstream)
 		$(meson_use udev)
+		-Dudev_dir=$(get_udevdir)
 		$(meson_use input_devices_wacom libwacom)
 		-Dpango_ft2=true
 		-Dstartup_notification=true
