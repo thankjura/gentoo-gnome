@@ -2,11 +2,10 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
-inherit gnome.org gnome2-utils meson virtualx xdg
+inherit gnome.org gnome2-utils meson udev virtualx xdg
 
 DESCRIPTION="GNOME 3 compositing window manager based on Clutter"
 HOMEPAGE="https://gitlab.gnome.org/GNOME/mutter/"
-SRC_URI+=" https://dev.gentoo.org/~leio/distfiles/${PF}-patchset.tar.xz"
 
 LICENSE="GPL-2+"
 SLOT="0/8" # 0/libmutter_api_version - ONLY gnome-shell (or anything using mutter-clutter-<api_version>.pc) should use the subslot
@@ -18,7 +17,7 @@ REQUIRED_USE="
 	test? ( wayland )"
 RESTRICT="!test? ( test )"
 
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~sparc ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
 
 # gnome-settings-daemon is build checked, but used at runtime only for org.gnome.settings-daemon.peripherals.keyboard gschema
 # xorg-server is needed at build and runtime with USE=wayland for Xwayland
@@ -96,7 +95,6 @@ BDEPEND="
 "
 
 PATCHES=(
-	"${WORKDIR}"/patches
 	"${FILESDIR}"/${PN}-40.0-Disable-anonymous-file-test.patch
 	"${FILESDIR}"/1441.patch
 )
