@@ -1,7 +1,7 @@
-From beb5cde243701d7564fb7a266a0feab3c2289329 Mon Sep 17 00:00:00 2001
+From 390f48b30f187f25491c4022c8692df6cf518130 Mon Sep 17 00:00:00 2001
 From: Daniel van Vugt <daniel.van.vugt@canonical.com>
 Date: Wed, 3 Feb 2021 15:35:57 +0800
-Subject: [PATCH 1/5] onscreen/native: Remove assertion that double buffering
+Subject: [PATCH 1/6] onscreen/native: Remove assertion that double buffering
  is the maximum
 
 It obviously fails with triple buffering, but also wasn't protecting
@@ -11,7 +11,7 @@ against anything other than accidentally triple buffering.
  1 file changed, 2 deletions(-)
 
 diff --git a/src/backends/native/meta-onscreen-native.c b/src/backends/native/meta-onscreen-native.c
-index 53388e3f64..6453232062 100644
+index da75b03ec4..0191c3a4c5 100644
 --- a/src/backends/native/meta-onscreen-native.c
 +++ b/src/backends/native/meta-onscreen-native.c
 @@ -201,8 +201,6 @@ meta_onscreen_native_notify_frame_complete (CoglOnscreen *onscreen)
@@ -27,10 +27,10 @@ index 53388e3f64..6453232062 100644
 GitLab
 
 
-From b31719b5753f262d160f9e0026387717f7a7e151 Mon Sep 17 00:00:00 2001
+From 4f2f6ca50123da25460695e370feed5b86bcc443 Mon Sep 17 00:00:00 2001
 From: Daniel van Vugt <daniel.van.vugt@canonical.com>
 Date: Wed, 15 Jul 2020 17:03:27 +0800
-Subject: [PATCH 2/5] clutter/frame-clock: Remember the refresh interval
+Subject: [PATCH 2/6] clutter/frame-clock: Remember the refresh interval
 
 Instead of recalculating it every time we need it. The performance
 gain is not important; this is more because it will be needed in
@@ -108,10 +108,10 @@ index 05e79e6626..fe77e3d1d5 100644
 GitLab
 
 
-From f5121dd8c583b508c443b5ea612d98c822e906e8 Mon Sep 17 00:00:00 2001
+From ee31efcb964acf7860f3158dc4d14f37884f5c88 Mon Sep 17 00:00:00 2001
 From: Daniel van Vugt <daniel.van.vugt@canonical.com>
 Date: Fri, 24 Jul 2020 14:13:11 +0800
-Subject: [PATCH 3/5] clutter/frame-clock: Merge states DISPATCHING and
+Subject: [PATCH 3/6] clutter/frame-clock: Merge states DISPATCHING and
  PENDING_PRESENTED
 
 Chronologically they already overlap in time, as presentation may
@@ -225,10 +225,10 @@ index fe77e3d1d5..41ef2e3bad 100644
 GitLab
 
 
-From 7b877dbc8f33e72c4bd8e1a7333275db6d0338cc Mon Sep 17 00:00:00 2001
+From 7e1cbe4ff61670fec4a09b987ae2ad33495da1d4 Mon Sep 17 00:00:00 2001
 From: Daniel van Vugt <daniel.van.vugt@canonical.com>
 Date: Thu, 10 Sep 2020 16:34:53 +0800
-Subject: [PATCH 4/5] clutter/frame-clock: Add triple buffering support
+Subject: [PATCH 4/6] clutter/frame-clock: Add triple buffering support
 
 This is classical triple buffering with one frame higher latency than
 double buffering. But we'll improve on that in the next commit...
@@ -440,10 +440,10 @@ index 41ef2e3bad..01a39c74b7 100644
 GitLab
 
 
-From a61d020ac24a758522dd43840b2f082ca85c62ed Mon Sep 17 00:00:00 2001
+From 40db9482f72eff1a28d0424835db90f2ed88966b Mon Sep 17 00:00:00 2001
 From: Daniel van Vugt <daniel.van.vugt@canonical.com>
 Date: Fri, 11 Sep 2020 18:15:55 +0800
-Subject: [PATCH 5/5] clutter/frame-clock: Switch dynamically between double
+Subject: [PATCH 5/6] clutter/frame-clock: Switch dynamically between double
  and triple buffers
 
 When in the DISPATCHED_ONE state, `calculate_next_update_time_us` can't be
@@ -532,6 +532,34 @@ index 01a39c74b7..75c1927394 100644
  }
  
  static void
+-- 
+GitLab
+
+
+From af8c859dbe1614de46794c4b3f40fb75486586f6 Mon Sep 17 00:00:00 2001
+From: Daniel van Vugt <daniel.van.vugt@canonical.com>
+Date: Wed, 23 Jun 2021 18:04:16 +0800
+Subject: [PATCH 6/6] onscreen/native: Remove an assertion that we're not
+ triple buffering
+
+Because we are now occasionally triple buffering so the warning is no
+longer valid.
+---
+ src/backends/native/meta-onscreen-native.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/backends/native/meta-onscreen-native.c b/src/backends/native/meta-onscreen-native.c
+index 0191c3a4c5..426b7f3680 100644
+--- a/src/backends/native/meta-onscreen-native.c
++++ b/src/backends/native/meta-onscreen-native.c
+@@ -1022,7 +1022,6 @@ meta_onscreen_native_swap_buffers_with_damage (CoglOnscreen  *onscreen,
+   switch (renderer_gpu_data->mode)
+     {
+     case META_RENDERER_NATIVE_MODE_GBM:
+-      g_warn_if_fail (onscreen_native->gbm.next_fb == NULL);
+       g_clear_object (&onscreen_native->gbm.next_fb);
+ 
+       use_modifiers = meta_renderer_native_use_modifiers (renderer_native);
 -- 
 GitLab
 
