@@ -2,5 +2,5 @@
 * It will probably break your deptree, your system, and your backbone.
 
 ##############
-# GNOME 41 #
+# GNOME 46 #
 ##############
