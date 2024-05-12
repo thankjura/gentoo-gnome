@@ -26,7 +26,7 @@ BDEPEND="
 src_configure() { :; }
 
 do_rst2man_command() {
-	rst2man.py \
+	rst2man \
 		--syntax-highlight=none \
 		"${1}" "${2}"  || die "manpage generation failed"
 }

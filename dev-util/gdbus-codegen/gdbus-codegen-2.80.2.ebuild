@@ -49,7 +49,7 @@ python_prepare_all() {
 
 do_rst2man_command() {
 	# Taken from meson.build for manual manpage building - keep in sync (also copied to dev-util/glib-utils)
-	rst2man.py \
+	rst2man \
 		--syntax-highlight=none \
 		"${1}" "${2}"  || die "manpage generation failed"
 }
