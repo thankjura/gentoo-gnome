@@ -6,8 +6,8 @@ import aiohttp
 import re
 from .parser import GParser
 
-ftp_version_regexp = re.compile("-(\d+(\.\d+)*(\.rc|\.alpha|\.beta)?(\.\d+)?)")
-ebuild_version_regexp = re.compile("-(\d+(\.\d+)*(_rc\d*|_alpha\d*|_beta\d*)?)")
+ftp_version_regexp = re.compile(r"-(\d+(\.\d+)*(\.rc|\.alpha|\.beta)?(\.\d+)?)")
+ebuild_version_regexp = re.compile(r"-(\d+(\.\d+)*(_rc\d*|_alpha\d*|_beta\d*)?)")
 PREFIX = 'https://download.gnome.org/sources/'
 
 PORTAGE_PREFIX = '/var/db/repos/gentoo'
@@ -143,7 +143,11 @@ def get_last_local_version(atom):
             return Version('0')
         for f in listdir(path.join(prefix, atom)):
             if f.endswith(".ebuild"):
-                versions.append(Version(ebuild_version_regexp.findall(f)[0][0]))
+                ver = ebuild_version_regexp.findall(f)[0][0]
+                if ver == "9999":
+                    continue
+
+                versions.append(Version(ver))
 
         if versions:
             versions.sort()

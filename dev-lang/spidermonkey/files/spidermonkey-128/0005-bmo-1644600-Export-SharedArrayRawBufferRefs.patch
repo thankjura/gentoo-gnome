@@ -1,0 +1,27 @@
+From e7986f4c1454879d05741a25888ecf08a58d9ed5 Mon Sep 17 00:00:00 2001
+From: Arfrever Frehtes Taifersar Arahesis <Arfrever@Apache.Org>
+Date: Mon, 14 Dec 2020 17:56:51 +0100
+Subject: [PATCH 6/6] bmo#1644600: Export SharedArrayRawBufferRefs
+
+Bug: https://bugs.gentoo.org/759985
+Signed-off-by: Thomas Deutschmann <whissi@gentoo.org>
+---
+ js/public/StructuredClone.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/js/public/StructuredClone.h b/js/public/StructuredClone.h
+index 1b3bec9c72..750c65232b 100644
+--- a/js/public/StructuredClone.h
++++ b/js/public/StructuredClone.h
+@@ -381,7 +381,7 @@ enum OwnTransferablePolicy {
+ namespace js {
+ class SharedArrayRawBuffer;
+ 
+-class SharedArrayRawBufferRefs {
++class JS_PUBLIC_API SharedArrayRawBufferRefs {
+  public:
+   SharedArrayRawBufferRefs() = default;
+   SharedArrayRawBufferRefs(SharedArrayRawBufferRefs&& other) = default;
+-- 
+2.31.1
+

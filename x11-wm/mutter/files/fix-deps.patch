@@ -1,0 +1,12 @@
+diff -ru mutter-47.0.old/meson.build mutter-47.0/meson.build
+--- mutter-47.0.old/meson.build	2024-09-14 23:36:50.000000000 +0300
++++ mutter-47.0/meson.build	2024-09-15 19:54:52.886164745 +0300
+@@ -26,7 +26,7 @@
+ cairo_req = '>= 1.10.0'
+ pangocairo_req = '>= 1.20'
+ pixman_req = '>= 0.42'
+-gsettings_desktop_schemas_req = '>= 47.beta'
++gsettings_desktop_schemas_req = '>= 47'
+ x11_req = '>= 1.7.0'
+ xcomposite_req = '>= 0.4'
+ xkbcommon_req = '>= 0.4.3'
