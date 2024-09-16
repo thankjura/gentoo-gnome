@@ -137,6 +137,7 @@ BDEPEND="${PYTHON_DEPS}
 "
 
 PATCHES=(
+	"${FILESDIR}/fix-deps.patch"
 	# Makes some panels and dependencies optional
 	# https://bugzilla.gnome.org/686840, 697478, 700145
 	# Fix some absolute paths to be appropriate for Gentoo
@@ -153,6 +154,8 @@ pkg_setup() {
 }
 
 src_prepare() {
+	rm "${WORKDIR}"/patches/0003-build-Make-gnome-online-accounts-optional.patch
+	rm "${WORKDIR}"/patches/0004-build-Make-printers-panel-cups-optional.patch
 	default
 	xdg_environment_reset
 	# Mark python tests with shebang executable, so that meson will launch them directly, instead
@@ -171,11 +174,11 @@ src_configure() {
 
 	local emesonargs=(
 		$(meson_use bluetooth)
-		-Dcups=$(usex cups enabled disabled)
+		#-Dcups=$(usex cups enabled disabled)
 		-Ddeprecated-declarations=disabled
 		-Ddocumentation=true # manpage
 		-Dlocation-services=$(usex geolocation enabled disabled)
-		-Dgoa=$(usex gnome-online-accounts enabled disabled)
+		#-Dgoa=$(usex gnome-online-accounts enabled disabled)
 		$(meson_use ibus)
 		-Dkerberos=$(usex kerberos enabled disabled)
 		$(meson_use networkmanager network_manager)

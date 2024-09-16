@@ -36,6 +36,10 @@ BDEPEND="
 	wayland? ( dev-util/wayland-scanner )
 "
 
+PATCHES=(
+	"${FILESDIR}/fix-deps.patch"
+)
+
 src_configure() {
 	local emesonargs=(
 		-Dsystemduserunitdir="$(systemd_get_userunitdir)"

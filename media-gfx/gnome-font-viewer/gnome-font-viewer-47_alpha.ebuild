@@ -28,7 +28,3 @@ BDEPEND="
 	>=sys-devel/gettext-0.19.8
 	virtual/pkgconfig
 "
-
-PATCHES=(
-	"${FILESDIR}"/45.0-window-Fix-function-callback-definition.patch
-)
