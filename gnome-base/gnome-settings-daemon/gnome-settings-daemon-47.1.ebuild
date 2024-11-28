@@ -26,7 +26,10 @@ COMMON_DEPEND="
 	>=x11-libs/gtk+-3.15.3:3[X,wayland?]
 	>=dev-libs/libgweather-4.2.0:4=
 	colord? ( >=x11-misc/colord-1.4.5:= )
-	media-libs/libcanberra[gtk3]
+	|| (
+		media-libs/libcanberra-gtk3
+		>=media-libs/libcanberra-0.25[gtk3(-)]
+	)
 	>=app-misc/geoclue-2.3.1:2.0
 	>=x11-libs/libnotify-0.7.3
 	>=media-libs/libpulse-16.1[glib]

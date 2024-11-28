@@ -36,7 +36,10 @@ COMMON_DEPEND="
 	>=dev-libs/glib-2.68:2
 	>=x11-libs/gtk+-2.91.1:3
 	>=dev-libs/json-glib-1.2.0
-	>=media-libs/libcanberra-0.4[gtk3]
+	|| (
+		media-libs/libcanberra-gtk3
+		>=media-libs/libcanberra-0.25[gtk3(-)]
+	)
 	>=sys-apps/accountsservice-0.6.35
 	x11-libs/libxcb
 	sys-apps/keyutils:=

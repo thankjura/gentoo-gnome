@@ -55,7 +55,11 @@ DEPEND="
 
 	gnome? ( gnome-base/gnome-desktop:4= )
 
-	>=media-libs/libcanberra-0.26
+	|| (
+		media-libs/libcanberra-gtk3
+		>=media-libs/libcanberra-0.25[gtk3(-)]
+	)
+
 
 	media-libs/libglvnd[X]
 

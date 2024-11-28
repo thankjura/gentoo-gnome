@@ -93,7 +93,10 @@ DEPEND="
 # system-config-printer provides org.fedoraproject.Config.Printing service and interface
 # cups-pk-helper provides org.opensuse.cupspkhelper.mechanism.all-edit policykit helper policy
 RDEPEND="${DEPEND}
-	media-libs/libcanberra[pulseaudio,sound]
+	|| (
+		media-libs/libcanberra-gtk3
+		>=media-libs/libcanberra-0.25[gtk3(-)]
+	)
 	systemd? ( >=sys-apps/systemd-31 )
 	elogind? (
 		app-admin/openrc-settingsd
