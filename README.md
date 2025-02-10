@@ -2,7 +2,7 @@
 * It will probably break your deptree, your system, and your backbone.
 
 ##############
-# GNOME 46 #
+# GNOME 48 #
 ##############
 
-![screenshot](/gnome-46.jpg)
+![screenshot](/gnome-48.jpg)
