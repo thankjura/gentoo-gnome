@@ -50,11 +50,6 @@ BDEPEND="
 	)
 "
 
-#PATCHES=(
-	# These tests require connections to pipewire, internet, /dev/fuse
-#	"${FILESDIR}/${PN}-1.18.0-sandbox-disable-failing-tests.patch"
-#)
-
 pkg_setup() {
 	use test && python-any-r1_pkg_setup
 }
@@ -71,7 +66,6 @@ src_configure() {
 		-Dsystemd-user-unit-dir="$(systemd_get_userunitdir)"
 		$(meson_feature flatpak flatpak-interfaces)
 		# Only used for tests
-		$(meson_feature test libportal)
 		$(meson_feature geolocation geoclue)
 		$(meson_feature seccomp sandboxed-image-validation)
 		$(meson_feature systemd)
@@ -81,7 +75,7 @@ src_configure() {
 		-Ddatarootdir="${EPREFIX}/usr/share"
 		-Dman-pages=enabled
 		-Dinstalled-tests=false
-		$(meson_feature test pytest)
+		$(meson_feature test tests)
 	)
 	addwrite "/dev/dri/renderD128"
 	meson_src_configure
