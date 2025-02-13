@@ -87,8 +87,8 @@ src_configure() {
 	meson_src_configure
 }
 
-src_install() {
-	meson_src_install
+#src_install() {
+#	meson_src_install
 
 	# Install a default to avoid breakage: >=1.18.0 assumes that DEs/WMs
 	# will install their own, but we want some fallback in case they don't
@@ -97,9 +97,9 @@ src_install() {
 	#
 	# TODO: Add some docs on wiki for users to add their own preference
 	# for minimalist WMs etc.
-	insinto /usr/share/xdg-desktop-portal
-	newins "${FILESDIR}"/default-portals.conf portals.conf
-}
+#	insinto /usr/share/xdg-desktop-portal
+#	newins "${FILESDIR}"/default-portals.conf portals.conf
+#}
 
 pkg_postinst() {
 	if ! has_version gui-libs/xdg-desktop-portal-lxqt && ! has_version gui-libs/xdg-desktop-portal-wlr && \
