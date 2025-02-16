@@ -10,9 +10,7 @@ HOMEPAGE="https://gitlab.gnome.org/GNOME/xdg-desktop-portal-gnome"
 
 LICENSE="LGPL-2.1"
 SLOT="0"
-
-KEYWORDS=""
-#KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~x86"
 IUSE="wayland X"
 
 # Newer-than-strictly-required xdg-desktop-portal dep for hang/slowness fixes
@@ -24,7 +22,7 @@ DEPEND="
 	>=gui-libs/libadwaita-1.6_beta:1
 	media-libs/fontconfig
 	sys-apps/dbus
-	>=sys-apps/xdg-desktop-portal-1.19.1
+	>=sys-apps/xdg-desktop-portal-1.18.2
 	>=sys-apps/xdg-desktop-portal-gtk-1.14.0
 	gui-libs/gtk:4[wayland?,X?]
 	X? ( x11-libs/libX11 )
@@ -38,6 +36,8 @@ BDEPEND="
 
 	wayland? ( dev-util/wayland-scanner )
 "
+
+PATCHES="${FILESDIR}/213.patch"
 
 src_configure() {
 	local emesonargs=(

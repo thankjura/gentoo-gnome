@@ -1,0 +1,93 @@
+From b570a6c2e75a7e368800adabffc0d9b4cdd25908 Mon Sep 17 00:00:00 2001
+From: Simon McVittie <smcv@debian.org>
+Date: Sun, 16 Feb 2025 15:57:53 +0000
+Subject: [PATCH 1/2] notification: Fix build against xdg-desktop-portal >=
+ 1.19.1
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Based on patches by Georges Basile Stavracas Neto (in x-d-p-gtk) and
+Sébastien Noel (on https://bugs.debian.org/1096094).
+
+This is unnecessary on main because it's redundant with commit 4cb1575c
+"deps: Upgrade portal to >=1.19.1", but that commit is unsuitable for
+backport to 47.x since it adds a hard dependency on the newer version.
+
+Bug-Debian: https://bugs.debian.org/1096094
+Signed-off-by: Simon McVittie <smcv@debian.org>
+---
+ src/meson.build    | 5 +++++
+ src/notification.c | 4 ++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/src/meson.build b/src/meson.build
+index 09b774a..16e964d 100644
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -58,6 +58,11 @@ config_h.set_quoted('GETTEXT_PACKAGE', meson.project_name())
+ config_h.set_quoted('LOCALEDIR', prefix / get_option('localedir'))
+ config_h.set_quoted('PACKAGE_NAME', meson.project_name())
+ config_h.set_quoted('PACKAGE_STRING', '@0@ @1@'.format(meson.project_name(), meson.project_version()))
++
++if xdg_desktop_portal_dep.version().version_compare('>= 1.19.1')
++  config_h.set('HAVE_XDP_1_19_1', 1)
++endif
++
+ built_sources += configure_file(output: 'config.h', configuration: config_h)
+ 
+ # Sources
+diff --git a/src/notification.c b/src/notification.c
+index 139056f..954bb55 100644
+--- a/src/notification.c
++++ b/src/notification.c
+@@ -69,7 +69,11 @@ handle_add_notification (XdpImplNotification *object,
+                                                notification_added,
+                                                NULL);
+ 
++#ifdef HAVE_XDP_1_19_1
++  xdp_impl_notification_complete_add_notification (object, invocation, NULL);
++#else
+   xdp_impl_notification_complete_add_notification (object, invocation);
++#endif
+ 
+   return TRUE;
+ }
+-- 
+GitLab
+
+
+From e3a3e7c20bae0a06dc6b578c76bab0106b6eda2f Mon Sep 17 00:00:00 2001
+From: Georges Basile Stavracas Neto <georges.stavracas@gmail.com>
+Date: Mon, 3 Feb 2025 10:00:05 -0300
+Subject: [PATCH 2/2] notification: Add missing GUnixFDList argument
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This currently crashes, since the GUnixFDList argument is interpreted
+as the application id and it's obviously invalid.
+
+(cherry picked from commit b8593d76939199b1c9001b22a8e9b62c4b887431)
+[smcv: Only expect the GUnixFDList if built against x-d-p ≥ 1.19.1]
+---
+ src/notification.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/notification.c b/src/notification.c
+index 954bb55..becd196 100644
+--- a/src/notification.c
++++ b/src/notification.c
+@@ -57,6 +57,9 @@ app_path_for_id (const gchar *app_id)
+ static gboolean
+ handle_add_notification (XdpImplNotification *object,
+                          GDBusMethodInvocation *invocation,
++#ifdef HAVE_XDP_1_19_1
++                         GUnixFDList *fds,
++#endif
+                          const gchar *arg_app_id,
+                          const gchar *arg_id,
+                          GVariant *arg_notification)
+-- 
+GitLab
+
