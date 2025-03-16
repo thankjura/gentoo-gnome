@@ -36,6 +36,8 @@ DEPEND="
 
 RDEPEND="${DEPEND}"
 
+PATCHES="${FILESDIR}/8b951a647654e51cabd795532e1504b2ce0880de.patch"
+
 S="${WORKDIR}/${MY_P}"
 
 src_configure() {
