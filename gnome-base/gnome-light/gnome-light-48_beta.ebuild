@@ -31,7 +31,7 @@ RDEPEND="
 		>=x11-wm/mutter-${PV}
 		>=dev-libs/gjs-1.82
 		>=gnome-base/gnome-shell-${PV}
-		>=media-fonts/adwaita-${PV}
+		>=media-fonts/adwaita-fonts-${PV}
 	)
 
 	>=x11-themes/adwaita-icon-theme-${PV}
