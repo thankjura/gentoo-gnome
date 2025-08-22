@@ -1,0 +1,28 @@
+diff -ru vte-0.81.90.old/meson.build vte-0.81.90/meson.build
+--- vte-0.81.90.old/meson.build	2025-08-02 23:53:30.000000000 +0300
++++ vte-0.81.90/meson.build	2025-08-22 00:40:25.452218301 +0300
+@@ -699,11 +699,7 @@
+   gtk3_dep = dependency('', required: false)
+ endif
+ 
+-if get_option('gtk4')
+-  gtk4_dep = dependency('gtk4', version: '>=' + gtk4_req_version)
+-else
+-  gtk4_dep = dependency('', required: false)
+-endif
++gtk4_dep = dependency('gtk4', version: '>=' + gtk4_req_version)
+ 
+ if get_option('icu')
+   icu_dep = dependency('icu-uc', version: '>=' + icu_uc_req_version)
+diff -ru vte-0.81.90.old/src/meson.build vte-0.81.90/src/meson.build
+--- vte-0.81.90.old/src/meson.build	2025-08-02 23:53:30.000000000 +0300
++++ vte-0.81.90/src/meson.build	2025-08-22 00:40:44.686610091 +0300
+@@ -715,7 +715,7 @@
+ 
+ if get_option('gtk3')
+   test_color_lightness_deps += [gtk3_dep,]
+-elif get_option('gtk4')
++else
+   test_color_lightness_deps += [gtk4_dep,]
+ endif
+ 
