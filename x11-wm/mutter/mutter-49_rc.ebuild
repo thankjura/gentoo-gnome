@@ -54,6 +54,7 @@ RDEPEND="
 	>=media-libs/harfbuzz-2.6.0:=
 	>=dev-libs/libei-1.3.901
 	>=media-libs/libdisplay-info-0.2:=
+	>=media-libs/glycin-2.0_rc
 
 	gnome? ( gnome-base/gnome-desktop:4= )
 
@@ -147,10 +148,6 @@ BDEPEND="
 		')
 	)
 "
-
-PATCHES=(
-	"${FILESDIR}"/${PN}-43.0-Disable-anonymous-file-test.patch
-)
 
 python_check_deps() {
 	if use test; then

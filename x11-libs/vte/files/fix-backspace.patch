@@ -1,0 +1,26 @@
+From bb0e930f446812f4b15d97f1f26566006925f7ac Mon Sep 17 00:00:00 2001
+From: Christian Persch <chpe@src.gnome.org>
+Date: Sun, 31 Aug 2025 20:33:16 +0200
+Subject: [PATCH] emulation: Fix XTRQTCAP response for Backspace key
+
+https://gitlab.gnome.org/GNOME/vte/-/issues/2897
+---
+ src/vteseq.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/vteseq.cc b/src/vteseq.cc
+index a11a06f48..93ff0d970 100644
+--- a/src/vteseq.cc
++++ b/src/vteseq.cc
+@@ -9989,7 +9989,7 @@ try
+                                         char* normal = nullptr;
+                                         auto len = 0uz;
+                                         auto suppress = false, add_modifiers = false;
+-                                        map_erase_binding(m_delete_binding,
++                                        map_erase_binding(keycode == GDK_KEY_Delete ? m_delete_binding : m_backspace_binding,
+                                                           keycode == GDK_KEY_Delete ? EraseMode::eDELETE_SEQUENCE : EraseMode::eTTY,
+                                                           state,
+                                                           normal,
+-- 
+GitLab
+

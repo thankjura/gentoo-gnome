@@ -48,6 +48,8 @@ BDEPEND="
 	vala? ( $(vala_depend) )
 "
 
+PATCHES="${FILESDIR}/fix-backspace.patch"
+
 src_prepare() {
 	default
 	use vala && vala_setup

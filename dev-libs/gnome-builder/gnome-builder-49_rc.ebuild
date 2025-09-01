@@ -38,7 +38,7 @@ RDEPEND="
 	>=gui-libs/gtk-4.15.5:4[introspection]
 	>=gui-libs/libadwaita-1.6_alpha:1
 	>=gui-libs/libpanel-1.7.0:1
-	>=gui-libs/gtksourceview-5.15:5[introspection]
+	>=gui-libs/gtksourceview-5.17:5[introspection]
 	>=dev-libs/json-glib-1.2.0
 	>=dev-libs/jsonrpc-glib-3.43.0:=
 	>=dev-libs/libdex-0.7:=
