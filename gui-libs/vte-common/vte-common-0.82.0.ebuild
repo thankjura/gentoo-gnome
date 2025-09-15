@@ -41,9 +41,7 @@ BDEPEND="
 	virtual/pkgconfig
 "
 
-PATCHES="
-	"${FILESDIR}"/${P}-fix-test.patch
-"
+PATCHES="${FILESDIR}/vte-common-0.81.90-fix-test.patch"
 
 src_prepare() {
 	default

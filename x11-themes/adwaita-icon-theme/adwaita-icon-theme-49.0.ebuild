@@ -41,10 +41,6 @@ BDEPEND="
 # This ebuild does not install any binaries
 RESTRICT="binchecks strip"
 
-PATCHES="
-	${FILESDIR}/${PV}-fix-vpn-icon.patch
-"
-
 src_prepare() {
 	if use branding; then
 		for i in 16; do

@@ -42,7 +42,7 @@ src_configure() {
 		-Dprofiling=false # -pg passing
 		$(meson_feature introspection)
 		$(meson_use vala vapi)
-		$(meson_use gtk-doc gtk_doc)
+		$(meson_use gtk-doc docs)
 		$(meson_use test tests)
 	)
 	meson_src_configure
