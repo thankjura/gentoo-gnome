@@ -71,7 +71,6 @@ COMMON_DEPEND="
 # fprintd is used via dbus by gdm-fingerprint-extension
 RDEPEND="${COMMON_DEPEND}
 	acct-group/gdm
-	acct-user/gdm
 	>=gnome-base/gnome-session-3.6
 	>=gnome-base/gnome-shell-3.1.90
 	x11-apps/xhost
@@ -168,13 +167,6 @@ src_configure() {
 src_install() {
 	meson_src_install
 
-	if ! use bluetooth-sound ; then
-		# Workaround https://gitlab.freedesktop.org/pulseaudio/pulseaudio/merge_requests/10
-		# bug #679526
-		insinto /var/lib/gdm/.config/pulse
-		doins "${FILESDIR}"/default.pa
-	fi
-
 	# install XDG_DATA_DIRS gdm changes
 	echo 'XDG_DATA_DIRS="/usr/share/gdm"' > 99xdg-gdm
 	doenvd 99xdg-gdm
@@ -187,17 +179,6 @@ src_install() {
 pkg_postinst() {
 	xdg_pkg_postinst
 	gnome2_schemas_update
-
-	local d ret
-
-	# bug #669146; gdm may crash if /var/lib/gdm subdirs are not owned by gdm:gdm
-	ret=0
-	ebegin "Fixing ${EROOT}/var/lib/gdm ownership"
-	chown --no-dereference gdm:gdm "${EROOT}/var/lib/gdm" || ret=1
-	for d in "${EROOT}/var/lib/gdm/"{.cache,.color,.config,.dbus,.local}; do
-		[[ ! -e "${d}" ]] || chown --no-dereference -R gdm:gdm "${d}" || ret=1
-	done
-	eend ${ret}
 
 	systemd_reenable gdm.service
 	readme.gentoo_print_elog
