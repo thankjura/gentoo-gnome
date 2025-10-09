@@ -110,6 +110,8 @@ DOC_CONTENTS="
 	for smartcard support
 "
 
+PATCHES="${FILESDIR}/0001-Xsession-Don-t-start-ssh-agent-by-default.patch"
+
 src_prepare() {
 	default
 
@@ -179,6 +181,9 @@ src_install() {
 pkg_postinst() {
 	xdg_pkg_postinst
 	gnome2_schemas_update
+
+	# bug #669146; gdm may crash if /var/lib/gdm subdirs are not owned by gdm:gdm
+	chown --no-dereference gdm:gdm "${EROOT}/var/lib/gdm"
 
 	systemd_reenable gdm.service
 	readme.gentoo_print_elog

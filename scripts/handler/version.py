@@ -130,7 +130,7 @@ async def get_last_ftp_version(atom, slot=None) -> Optional[Version]:
             parser.feed(html)
         versions = []
         for al in parser.links:
-            if str(al).endswith('tar.xz'):
+            if str(al).endswith('tar.xz') or str(al).endswith('tar.gz'):
                 versions.append(Version(ftp_version_regexp.findall(str(al))[0][0]))
         versions.sort()
         return versions[-1]

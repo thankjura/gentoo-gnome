@@ -158,6 +158,12 @@ python_check_deps() {
 	fi
 }
 
+PATCHES="
+	${FILESDIR}/4667.patch
+	${FILESDIR}/4676.patch
+	${FILESDIR}/4679.patch
+"
+
 src_configure() {
 	use debug && EMESON_BUILDTYPE=debug
 	local emesonargs=(
@@ -247,7 +253,7 @@ src_test() {
 	gnome2_environment_reset
 	export XDG_DATA_DIRS="${EPREFIX}"/usr/share
 	glib-compile-schemas "${BUILD_DIR}"/data
-	GSETTINGS_SCHEMA_DIR="${BUILD_DIR}"/data meson_src_test
+	GSETTINGS_SCHEMA_DIR="${BUILD_DIR}"/data meson_src_test --setup=CI
 }
 
 pkg_postinst() {
