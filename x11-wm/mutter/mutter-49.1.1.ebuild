@@ -158,12 +158,6 @@ python_check_deps() {
 	fi
 }
 
-PATCHES="
-	${FILESDIR}/4667.patch
-	${FILESDIR}/4676.patch
-	${FILESDIR}/4679.patch
-"
-
 src_configure() {
 	use debug && EMESON_BUILDTYPE=debug
 	local emesonargs=(
