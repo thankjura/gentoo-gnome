@@ -133,6 +133,10 @@ BDEPEND="
 # dev-lang/sassc
 # app-text/asciidoc
 
+PATCHES="
+	$FILESDIR/fix-layout-switch.patch
+"
+
 src_prepare() {
 	default
 	xdg_environment_reset
