@@ -129,13 +129,6 @@ BDEPEND="
 		x11-wm/mutter[test]
 	)
 "
-# These are not needed from tarballs, unless stylesheets or manpage get patched with patchset:
-# dev-lang/sassc
-# app-text/asciidoc
-
-PATCHES="
-	$FILESDIR/fix-layout-switch.patch
-"
 
 src_prepare() {
 	default
