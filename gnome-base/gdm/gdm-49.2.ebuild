@@ -70,6 +70,7 @@ COMMON_DEPEND="
 # XXX: These deps are from session and desktop files in data/ directory
 # fprintd is used via dbus by gdm-fingerprint-extension
 RDEPEND="${COMMON_DEPEND}
+	acct-user/gdm
 	acct-group/gdm
 	>=gnome-base/gnome-session-3.6
 	>=gnome-base/gnome-shell-3.1.90
