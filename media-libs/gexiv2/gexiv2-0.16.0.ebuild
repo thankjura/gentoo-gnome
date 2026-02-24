@@ -18,7 +18,7 @@ else
 fi
 
 LICENSE="LGPL-2.1+ GPL-2+"
-SLOT="0"
+SLOT="0.16"
 IUSE="gtk-doc +introspection python test +vala"
 REQUIRED_USE="
 	python? ( introspection ${PYTHON_REQUIRED_USE} )
