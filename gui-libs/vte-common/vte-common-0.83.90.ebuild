@@ -41,10 +41,6 @@ BDEPEND="
 	virtual/pkgconfig
 "
 
-PATCHES=(
-	"${FILESDIR}/vte-${PV}-fix-unknown-variable.patch"
-)
-
 src_prepare() {
 	default
 	use elibc_musl && eapply "${FILESDIR}"/${PN}-0.70.0-musl-W_EXITCODE.patch

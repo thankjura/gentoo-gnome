@@ -21,10 +21,9 @@ SLOT="0"
 
 KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc64 ~riscv ~x86"
 
-IUSE="accessibility audit bluetooth-sound branding elogind fprint plymouth selinux systemd tcpd test wayland +X"
+IUSE="accessibility audit bluetooth-sound branding elogind fprint plymouth selinux systemd test +X"
 
 RESTRICT="!test? ( test )"
-REQUIRED_USE="^^ ( elogind systemd ) || ( wayland X )"
 
 # dconf, dbus and g-s-d are needed at install time for dconf update
 # keyutils is automagic dep that makes autologin unlock login keyring
@@ -47,7 +46,6 @@ COMMON_DEPEND="
 		x11-libs/libXdmcp
 		>=x11-libs/gtk+-2.91.1:3
 	)
-	tcpd? ( >=sys-apps/tcp-wrappers-7.6 )
 
 	systemd? ( >=sys-apps/systemd-186:0=[pam] )
 	elogind? ( >=sys-auth/elogind-239.3[pam] )
@@ -133,7 +131,6 @@ src_configure() {
 		-Ddefault-pam-config=exherbo
 		-Dgdm-xsession=true
 		-Dgroup=gdm
-		-Dipv6=true
 		$(meson_feature audit libaudit)
 		-Dlogind-provider=$(usex systemd systemd elogind)
 		-Dpam-mod-dir=$(getpam_mod_dir)
@@ -141,13 +138,7 @@ src_configure() {
 		-Drun-dir=/run/gdm
 		$(meson_feature selinux)
 		$(meson_use systemd systemd-journal)
-		$(meson_use tcpd tcp-wrappers)
-		-Dudev-dir=$(get_udevdir)/rules.d
-		-Duser=gdm
-		-Duser-display-server=true
-		$(meson_use wayland wayland-support)
 		$(meson_use X x11-support)
-		$(meson_feature X xdmcp)
 	)
 
 	if use elogind; then

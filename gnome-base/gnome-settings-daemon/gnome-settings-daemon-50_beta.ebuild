@@ -14,7 +14,7 @@ SLOT="0"
 
 KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86 ~amd64-linux ~x86-linux"
 
-IUSE="+X +xwayland +colord +cups debug elogind modemmanager networkmanager smartcard systemd test"
+IUSE="+xwayland +colord +cups debug elogind modemmanager networkmanager smartcard systemd test"
 RESTRICT="!test? ( test )"
 REQUIRED_USE="^^ ( elogind systemd )"
 
@@ -23,7 +23,7 @@ COMMON_DEPEND="
 	>=dev-libs/glib-2.70:2
 	>=gnome-base/gnome-desktop-3.37.1:3=
 	>=gnome-base/gsettings-desktop-schemas-46.0
-	>=x11-libs/gtk+-3.15.3:3[X?]
+	>=x11-libs/gtk+-3.15.3:3
 	>=dev-libs/libgweather-4.2.0:4=
 	colord? ( >=x11-misc/colord-1.4.5:= )
 	|| (
@@ -106,7 +106,6 @@ src_configure() {
 		$(meson_use cups)
 		$(meson_use networkmanager network_manager)
 		-Drfkill=true
-		$(meson_use X x11)
 		$(meson_use xwayland)
 		$(meson_use smartcard)
 		$(meson_use modemmanager wwan)

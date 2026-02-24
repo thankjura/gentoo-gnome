@@ -19,13 +19,11 @@ else
 	SLOT="0/$(($(ver_cut 1) - 32))" # 0/libmutter_api_version - ONLY gnome-shell (or anything using mutter-clutter-<api_version>.pc) should use the subslot
 fi
 
-IUSE="bash-completion debug elogind gnome gtk-doc input_devices_wacom +introspection screencast sysprof systemd test udev wayland X +xwayland video_cards_nvidia"
+IUSE="bash-completion debug elogind gnome gtk-doc input_devices_wacom +introspection screencast sysprof systemd test udev +xwayland video_cards_nvidia"
 # native backend requires gles3 for hybrid graphics blitting support, udev and a logind provider
 REQUIRED_USE="
-	|| ( X wayland )
 	gtk-doc? ( introspection )
-	wayland? ( ^^ ( elogind systemd ) udev )
-	test? ( screencast wayland )"
+	test? ( screencast )"
 RESTRICT="!test? ( test )"
 
 # gnome-settings-daemon is build checked, but used at runtime only for org.gnome.settings-daemon.peripherals.keyboard gschema
@@ -40,13 +38,13 @@ RDEPEND="
 	>=media-libs/graphene-1.10.2[introspection?]
 	x11-libs/gdk-pixbuf:2
 	>=x11-libs/pango-1.46[introspection?]
-	>=x11-libs/cairo-1.14[X]
+	>=x11-libs/cairo-1.14
 	>=x11-libs/pixman-0.42
 	>=dev-libs/fribidi-1.0.0
 	>=gnome-base/gsettings-desktop-schemas-47_beta[introspection?]
 	>=dev-libs/glib-2.81.1:2
 	gnome-base/gnome-settings-daemon
-	>=x11-libs/libxkbcommon-1.8.0[X?]
+	>=x11-libs/libxkbcommon-1.8.0
 	>=app-accessibility/at-spi2-core-2.46:2[introspection?]
 	sys-apps/dbus
 	>=x11-misc/colord-1.4.5:=
@@ -63,17 +61,15 @@ RDEPEND="
 	media-libs/libglvnd
 
 	>=dev-libs/wayland-1.23.0
-	wayland? (
-		>=dev-libs/wayland-protocols-1.41
+	>=dev-libs/wayland-protocols-1.41
 
-		>=x11-libs/libdrm-2.4.118
-		media-libs/mesa[gbm(+)]
-		>=dev-libs/libinput-1.27.0:=
+	>=x11-libs/libdrm-2.4.118
+	media-libs/mesa[gbm(+)]
+	>=dev-libs/libinput-1.27.0:=
 
-		elogind? ( sys-auth/elogind )
-		xwayland? ( >=x11-base/xwayland-23.2.1[libei(+)] )
-		video_cards_nvidia? ( gui-libs/egl-wayland )
-	)
+	elogind? ( sys-auth/elogind )
+	xwayland? ( >=x11-base/xwayland-23.2.1[libei(+)] )
+	video_cards_nvidia? ( gui-libs/egl-wayland )
 	udev? (
 		>=virtual/libudev-232-r1:=
 		>=dev-libs/libgudev-238
@@ -83,14 +79,14 @@ RDEPEND="
 	screencast? ( >=media-video/pipewire-1.2.0:= )
 	introspection? ( >=dev-libs/gobject-introspection-1.54:= )
 	test? (
-		>=x11-libs/gtk+-3.19.8:3[X,introspection?]
+		>=x11-libs/gtk+-3.19.8:3[introspection?]
 	)
 	sysprof? ( >=dev-util/sysprof-capture-3.40.1:4 >=dev-util/sysprof-3.46.0 )
 "
 
 X11_CLIENT_DEPS="
-	>=gui-libs/gtk-4.0.0:4[X,introspection?]
-	media-libs/libglvnd[X]
+	>=gui-libs/gtk-4.0.0:4[introspection?]
+	media-libs/libglvnd
 	>=x11-libs/libX11-1.7.0
 	>=x11-libs/libXcomposite-0.4
 	x11-libs/libXcursor
@@ -107,12 +103,7 @@ X11_CLIENT_DEPS="
 "
 
 RDEPEND+="
-	X? (
-		${X11_CLIENT_DEPS}
-		x11-libs/libxkbfile
-		x11-libs/libXtst
-	)
-	wayland? ( xwayland? ( ${X11_CLIENT_DEPS} ) )
+	xwayland? ( ${X11_CLIENT_DEPS} )
 "
 DEPEND="${RDEPEND}
 	x11-base/xorg-proto
@@ -131,15 +122,9 @@ BDEPEND="
 			>=dev-python/python-dbusmock-0.28[${PYTHON_USEDEP}]
 		')
 		app-text/docbook-xml-dtd:4.5
-		X? (
-			gnome-extra/zenity
-			x11-misc/xvfb-run
-		)
 	)
-	wayland? (
-		>=sys-kernel/linux-headers-4.4
-		x11-libs/libxcvt
-	)
+	>=sys-kernel/linux-headers-4.4
+	x11-libs/libxcvt
 	bash-completion? (
 		app-shells/bash-completion
 		${PYTHON_DEPS}
@@ -175,23 +160,10 @@ src_configure() {
 		# - https://forums.gentoo.org/viewtopic-p-8695669.html
 
 		-Dopengl=true
-		$(meson_use wayland gles2)
-		#gles2_libname
+		-Dgles2=true
 		-Degl=true
-		$(meson_use X glx)
-		$(meson_use wayland)
-		-Dfonts=true
+		$(meson_use xwayland)
 	)
-
-	if use wayland; then
-		emesonargs+=(
-			$(meson_use xwayland)
-		)
-	else
-		emesonargs+=(
-			-Dxwayland=false
-		)
-	fi
 
 	if use elogind || use systemd; then
 		emesonargs+=(
@@ -200,7 +172,7 @@ src_configure() {
 	fi
 
 	emesonargs+=(
-		$(meson_use wayland native_backend)
+		-Dnative_backend=true
 		$(meson_use screencast remote_desktop)
 		$(meson_use gnome libgnome_desktop)
 		$(meson_use udev)
@@ -218,7 +190,6 @@ src_configure() {
 		-Dtty_tests=false
 		$(meson_use sysprof profiler)
 		-Dinstalled_tests=false
-		$(meson_use X x11)
 		$(meson_use bash-completion bash_completion)
 
 		#verbose # Let upstream choose default for verbose mode
@@ -227,7 +198,7 @@ src_configure() {
 		#xwayland_grab_default_access_rules
 	)
 
-	if use wayland && use video_cards_nvidia; then
+	if use video_cards_nvidia; then
 		emesonargs+=(
 			-Degl_device=true
 			-Dwayland_eglstream=true
