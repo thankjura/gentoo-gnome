@@ -1,0 +1,34 @@
+From 3c892a7fff0f98707fd73cb50bde982a8bad57ee Mon Sep 17 00:00:00 2001
+From: Carlos Garnacho <carlosg@gnome.org>
+Date: Thu, 5 Feb 2026 15:52:10 +0100
+Subject: [PATCH] wayland: Emit ClutterCursor::texture-changed more often
+
+When using SHM cursors, we can reuse a same CoglTexture even if the
+underlying buffer changed. We can assume that calls to
+meta_cursor_wayland_set_texture() have a good reason why they happened,
+so make it always emit the signal, not only when the texture changes.
+
+Closes: https://gitlab.gnome.org/GNOME/mutter/-/issues/4567
+Closes: https://gitlab.gnome.org/GNOME/mutter/-/issues/4579
+Part-of: <https://gitlab.gnome.org/GNOME/mutter/-/merge_requests/4887>
+---
+ src/wayland/meta-cursor-wayland.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/wayland/meta-cursor-wayland.c b/src/wayland/meta-cursor-wayland.c
+index d349dcf4c06..f1d70d66b01 100644
+--- a/src/wayland/meta-cursor-wayland.c
++++ b/src/wayland/meta-cursor-wayland.c
+@@ -269,7 +269,7 @@ meta_cursor_wayland_set_texture (MetaCursorWayland *cursor_wayland,
+ {
+   cursor_wayland->hot_x = hot_x;
+   cursor_wayland->hot_y = hot_y;
++  g_set_object (&cursor_wayland->texture, texture);
+ 
+-  if (g_set_object (&cursor_wayland->texture, texture))
+-    clutter_cursor_emit_texture_changed (CLUTTER_CURSOR (cursor_wayland));
++  clutter_cursor_emit_texture_changed (CLUTTER_CURSOR (cursor_wayland));
+ }
+-- 
+GitLab
+
