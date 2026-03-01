@@ -21,7 +21,7 @@ REQUIRED_USE="
 
 RDEPEND="
 	>=dev-libs/glib-2.73.2:2
-	>=dev-libs/libpeas-0.7.4:0[gtk]
+	>=dev-libs/libpeas-1.38:0[gtk]
 	>=gnome-base/gnome-desktop-2.91.2:3=
 	>=gnome-base/gsettings-desktop-schemas-42_beta
 	>=x11-misc/shared-mime-info-0.20
