@@ -1,0 +1,12 @@
+diff -ru Gradia-1.12.0.old/data/ui/image_stack.blp Gradia-1.12.0/data/ui/image_stack.blp
+--- Gradia-1.12.0.old/data/ui/image_stack.blp	2026-02-23 22:49:17.000000000 +0300
++++ Gradia-1.12.0/data/ui/image_stack.blp	2026-03-04 12:13:48.877792818 +0300
+@@ -94,7 +94,7 @@
+                       icon-name: "sidebar-show-symbolic";
+                       tooltip-text: _("Open Sidebar");
+                       action-name: "win.sidebar-shown";
+-                      action-target: true;
++                      action-target: "@b true";
+                       visible: false;
+ 
+                       styles [
