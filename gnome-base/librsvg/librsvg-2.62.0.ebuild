@@ -364,7 +364,7 @@ CRATES="
 	zune-jpeg@0.5.12
 "
 
-inherit cargo gnome2 meson-multilib python-any-r1 rust-toolchain vala
+inherit cargo gnome2 meson-multilib python-any-r1 rust-toolchain toolchain-funcs vala
 
 DESCRIPTION="Scalable Vector Graphics (SVG) rendering library"
 HOMEPAGE="https://wiki.gnome.org/Projects/LibRsvg https://gitlab.gnome.org/GNOME/librsvg"
@@ -444,7 +444,7 @@ multilib_src_configure() {
 		$(meson_use test tests)
 	)
 
-	if ! multilib_is_native_abi; then
+	if ! multilib_is_native_abi || tc-is-cross-compiler; then
 		emesonargs+=(
 			# Set the rust target, which can differ from CHOST
 			-Dtriplet="$(rust_abi)"
