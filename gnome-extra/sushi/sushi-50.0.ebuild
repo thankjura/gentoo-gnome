@@ -15,21 +15,17 @@ REQUIRED_USE="|| ( wayland X )"
 
 DEPEND="
 	media-libs/libepoxy
-	>=app-text/evince-3.0[introspection]
+	>=app-text/papers-50[introspection]
 	media-libs/freetype:2
 	>=x11-libs/gdk-pixbuf-2.23.0[introspection]
 	>=dev-libs/glib-2.29.14:2
 	media-libs/gstreamer:1.0[introspection]
 	media-libs/gst-plugins-base:1.0[introspection]
-	>=x11-libs/gtk+-3.13.2:3[introspection,wayland?,X?]
-	>=x11-libs/gtksourceview-4.0.3:4[introspection]
+	>=gui-libs/gtk-4.10:4[introspection,wayland?,X?]
+	>=gui-libs/gtksourceview-5:5[introspection]
 	>=media-libs/harfbuzz-0.9.9:=
 	>=dev-libs/gobject-introspection-1.82.0-r2:=
 	>=dev-libs/gjs-1.40
-"
-RDEPEND="${DEPEND}
-	>=gnome-base/nautilus-3.1.90
-	media-plugins/gst-plugins-gtk:1.0[wayland?,X?]
 "
 BDEPEND="
 	dev-util/glib-utils
