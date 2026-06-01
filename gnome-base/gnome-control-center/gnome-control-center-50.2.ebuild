@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-PYTHON_COMPAT=( python3_{11..13} )
+PYTHON_COMPAT=( python3_{11..14} )
 
 inherit flag-o-matic gnome.org gnome2-utils meson python-any-r1 virtualx xdg
 
@@ -141,6 +141,7 @@ PATCHES=(
 	# Makes some panels and dependencies optional
 	# https://bugzilla.gnome.org/686840, 697478, 700145
 	# Fix some absolute paths to be appropriate for Gentoo
+	"${FILESDIR}"/3349.patch
 	"${WORKDIR}"/patches/
 )
 
