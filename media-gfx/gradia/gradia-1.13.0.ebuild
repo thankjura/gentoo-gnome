@@ -27,7 +27,6 @@ DEPEND="
 RDEPEND="${DEPEND}"
 BDEPEND=""
 
-PATCHES="${FILESDIR}/fix-build.patch"
 S=${WORKDIR}/Gradia-${PV}
 
 src_install() {
