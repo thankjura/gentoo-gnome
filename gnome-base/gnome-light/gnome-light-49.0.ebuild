@@ -34,10 +34,7 @@ RDEPEND="
 	>=x11-themes/adwaita-icon-theme-${PV}
 	>=x11-themes/gnome-backgrounds-${PV}
 
-	|| (
-		>=x11-terms/gnome-terminal-3.56
-		>=gui-apps/gnome-console-${PV}
-	)
+	>=gui-apps/gnome-console-${PV}
 "
 DEPEND=""
 PDEPEND=">=gnome-base/gvfs-1.58"
