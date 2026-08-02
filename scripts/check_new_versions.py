@@ -10,8 +10,7 @@ from handler.ebuild import create_ebuild
 from handler import custom
 
 custom_modules = [m for m in dir(custom) if not m.startswith('__')]
-loop = asyncio.get_event_loop()
-log = CursesLog()
+log = None
 
 
 async def check_atom_process(atom, slot):
@@ -52,8 +51,7 @@ async def check_atom(atom):
     atom = e[0]
     slot = e[1] if len(e) == 2 else None
 
-    x = asyncio.ensure_future(check_atom_process(atom, slot))
-    await x
+    await asyncio.ensure_future(check_atom_process(atom, slot))
 
 
 async def bound_check(sem, atom):
@@ -68,14 +66,14 @@ async def main(conf):
         task = asyncio.ensure_future(bound_check(sem, atom))
         tasks.append(task)
 
-    responses = asyncio.gather(*tasks)
-    await responses
+    await asyncio.gather(*tasks)
 
 
 if __name__ == '__main__':
+    log = CursesLog()
     start = datetime.now()
     with open(path.join(LOCAL_PREFIX, 'apps_list.conf')) as config:
-        loop.run_until_complete(main(config))
+        asyncio.run(main(config))
 
     log.add_str("finish", "Finish at {} sec".format((datetime.now() - start)), False, curses.color_pair(1))
     input("\nPress any key")
