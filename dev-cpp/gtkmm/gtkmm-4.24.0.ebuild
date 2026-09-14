@@ -17,7 +17,7 @@ IUSE="gtk-doc test"
 RESTRICT="!test? ( test )"
 
 RDEPEND="
-	>=dev-cpp/glibmm-2.75.0:2.68[gtk-doc?]
+	>=dev-cpp/glibmm-2.89.0:2.68[gtk-doc?]
 	>=gui-libs/gtk-4.19.4:4
 	>=dev-cpp/cairomm-1.15.4:1.16[gtk-doc?]
 	>=dev-cpp/pangomm-2.50.0:2.48[gtk-doc?]

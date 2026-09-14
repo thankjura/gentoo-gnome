@@ -15,7 +15,7 @@ LICENSE="GPL-2+ CC-BY-SA-2.5"
 SLOT="2"
 KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~x86"
 
-IUSE="+bluetooth debug elogind +gnome-online-accounts +ibus input_devices_wacom kerberos +geolocation networkmanager systemd test wayland"
+IUSE="+bluetooth debug elogind +gnome-online-accounts +ibus input_devices_wacom +geolocation networkmanager systemd test wayland"
 REQUIRED_USE="
 	^^ ( elogind systemd )
 " # Theoretically "?? ( elogind systemd )" is fine too, lacking some functionality at runtime,
@@ -23,7 +23,6 @@ REQUIRED_USE="
 
 RESTRICT="!test? ( test )"
 
-# kerberos unfortunately means mit-krb5; build fails with heimdal
 # display panel requires colord and gnome-settings-daemon[colord]
 # wacom panel requires gsd-enums.h from gsd at build time, probably also runtime support
 # printer panel requires cups and smbclient (the latter is not patched yet to be separately optional)
@@ -61,8 +60,6 @@ DEPEND="
 	)
 	bluetooth? ( net-wireless/gnome-bluetooth:3= )
 	input_devices_wacom? ( >=dev-libs/libwacom-1.4:= )
-	kerberos? ( app-crypt/mit-krb5 )
-
 	x11-libs/cairo[glib]
 	>=x11-libs/colord-gtk-0.3.0:=
 	media-libs/fontconfig
@@ -102,6 +99,7 @@ RDEPEND="${DEPEND}
 		>=x11-drivers/xf86-input-libinput-0.19.0
 		input_devices_wacom? ( >=x11-drivers/xf86-input-wacom-0.33.0 )
 	)
+	>=net-print/cups-1.4
 "
 # PDEPEND to avoid circular dependency; gnome-session-check-accelerated called by info panel
 # gnome-session-2.91.6-r1 also needed so that 10-user-dirs-update is run at login
@@ -159,7 +157,6 @@ src_configure() {
 		-Ddocumentation=true # manpage
 		-Dlocation-services=$(usex geolocation enabled disabled)
 		$(meson_use ibus)
-		$(meson_use kerberos)
 		-Dprivileged_group=wheel
 		-Dsnap=false
 		$(meson_use test tests)

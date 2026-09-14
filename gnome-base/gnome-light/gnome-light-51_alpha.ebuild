@@ -20,7 +20,7 @@ RDEPEND="
 
 	>=gnome-base/gnome-session-${PV}
 	>=gnome-base/gnome-settings-daemon-${PV}[cups?]
-	>=gnome-base/gnome-control-center-${PV}[cups?]
+	>=gnome-base/gnome-control-center-${PV}
 
 	>=gnome-base/nautilus-${PV}
 
